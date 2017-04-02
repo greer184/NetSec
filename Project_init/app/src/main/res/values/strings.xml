@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Project_init</string>
+    <string-array name="options_array">
+        <item>File A</item>
+        <item>File B</item>
+        <item>File C</item>
+        <item>File D</item>
+    </string-array>
+</resources>
