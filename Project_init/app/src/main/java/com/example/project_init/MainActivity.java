@@ -1,36 +1,45 @@
 package com.example.project_init;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.os.Bundle;
-import android.widget.AdapterView;
-import android.widget.Spinner;
-import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.view.View;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
+public class MainActivity extends Activity {
+    Button b1;
+    private BluetoothAdapter blueAdapt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.options_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(this);
+        // Set button to begin connection
+        b1 = (Button) findViewById(R.id.button);
+
     }
 
-    public void onItemSelected(AdapterView<?> parent, View view,
-                               int pos, long id) {
-        String item = parent.getItemAtPosition(pos).toString();
-        Toast.makeText(parent.getContext(),
-                "User selected " + item,
-                Toast.LENGTH_LONG).show();
+    // Verify whether or not bluetooth is enabled
+    public void on(View v){
+
+        // Setup adapter
+        blueAdapt = BluetoothAdapter.getDefaultAdapter();
+
+        // Initial Bluetooth check
+        if(blueAdapt == null){
+            Toast.makeText(getApplicationContext(),"Unable to use Bluetooth", Toast.LENGTH_LONG).show();
+        } else {
+            if (!blueAdapt.isEnabled()) {
+                Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(turnOn, 0);
+                Toast.makeText(getApplicationContext(), "Bluetooth enabled" ,Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Bluetooth already on" , Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
-    public void onNothingSelected(AdapterView<?> parent) {
-    }
 }
