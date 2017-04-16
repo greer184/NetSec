@@ -5,25 +5,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:id="@+id/layout"
     tools:context="com.example.project_init.MainActivity">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="File Transfer"
-        android:id="@+id/text" />
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal"
+    android:text="File Transfer"
+    android:id="@+id/text" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Turn On Bluetooth"
-        android:id="@+id/button"
-        android:layout_below="@+id/text"
-        android:layout_toStartOf="@+id/text"
-        android:layout_toLeftOf="@+id/text"
+        android:text="File Share via Bluetooth"
+        android:id="@+id/buttonD"
         android:layout_gravity="center_horizontal"
         android:clickable="true"
-        android:onClick="on" />
+        android:onClick="discovery" />
+
 
 </LinearLayout>
