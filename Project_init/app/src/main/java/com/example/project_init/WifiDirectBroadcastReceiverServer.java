@@ -49,7 +49,7 @@ public class WifiDirectBroadcastReceiverServer extends BroadcastReceiver {
             else
             {
                 //activity.setServerStatus("Connection Status: Disconnected");
-                manager.cancelConnect(channel, null);
+                //manager.cancelConnect(channel, null);
 
             }
 

@@ -53,11 +53,11 @@ public class WifiDirectClientActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.wifidirect_client_activity);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        //getActionBar().setDisplayHomeAsUpEnabled(true);
 
         wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 
-        wifichannel = wifiManager.initialize(this, getMainLooper(), null);
+        //wifichannel = wifiManager.initialize(this, getMainLooper(), null);
         wifiClientReceiver = new WifiDirectBroadcastReceiverClient(wifiManager, wifichannel, this);
 
         wifiClientReceiverIntentFilter = new IntentFilter();
@@ -186,7 +186,7 @@ public class WifiDirectClientActivity extends Activity {
 
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = wifiPeer.deviceAddress;
-        wifiManager.connect(wifichannel, config, new WifiP2pManager.ActionListener()  {
+        wifiManager.connect(wifichannel, config, new WifiP2pManager.ActionListener(){
             public void onSuccess() {
 
                 setClientStatus("Connection to " + targetDevice.deviceName + " sucessful");
