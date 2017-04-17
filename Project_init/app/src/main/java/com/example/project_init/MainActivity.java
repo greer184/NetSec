@@ -26,6 +26,9 @@ public class MainActivity extends Activity {
     //set up page for bluetooth connection
     public void selectBlueTooth(View view) {
 
+        // Get default adapter so Bluetooth works
+        blueAdapt = BluetoothAdapter.getDefaultAdapter();
+
         if(blueAdapt == null){
             Toast.makeText(getApplicationContext(), "Unable to use Bluetooth", Toast.LENGTH_LONG).show();
         } else {

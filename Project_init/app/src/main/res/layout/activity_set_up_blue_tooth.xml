@@ -18,11 +18,20 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="File Share via Bluetooth"
-        android:id="@+id/buttonD"
+        android:text="File Sender"
+        android:id="@+id/sender"
         android:layout_gravity="center_horizontal"
         android:clickable="true"
-        android:onClick="discovery" />
+        android:onClick="server" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="File Reciever"
+        android:id="@+id/receiver"
+        android:layout_gravity="center_horizontal"
+        android:clickable="true"
+        android:onClick="client" />
 
 
 </LinearLayout>

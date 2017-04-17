@@ -26,22 +26,34 @@ import java.util.Set;
 
 public class SetUpBlueToothActivity extends AppCompatActivity {
 
-    Button b1;
+    Button sender, receiver;
     private BluetoothAdapter blueAdapt;
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_set_up_blue_tooth);
 
         Intent intent = getIntent();
 
-        // Set button to allow Bluetooth connection
-        b1 = (Button) findViewById(R.id.buttonD);
+        sender = (Button) findViewById(R.id.sender);
+        receiver = (Button) findViewById(R.id.receiver);
     }
 
-    // Bluetooth code for discovering and pairing Bluetooth devices
+    // New Client/Server code
+    public void server(View v){
+        Intent intent = new Intent(this, BluetoothServerActivity.class);
+        startActivity(intent);
+    }
+
+    public void client(View v){
+        Intent intent = new Intent(this, BluetoothClientActivity.class);
+        startActivity(intent);
+    }
+
+    // Old discovery code, this could be useful for a display later down the road
+    // Right now, leave for testing purposes
     public void discovery(View v){
 
         // Setup adapter
@@ -128,188 +140,4 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         }
     };
 
-    public class BluetoothFileTransfer {
-        private static final String TAG = "MY_APP_DEBUG_TAG";
-        private Handler mHandler; // handler that gets info from Bluetooth service
-
-        // Defines several constants used when transmitting messages between the
-        // service and the UI.
-        private interface MessageConstants {
-            public static final int MESSAGE_READ = 0;
-            public static final int MESSAGE_WRITE = 1;
-        }
-
-        private class ConnectedThread extends Thread {
-            private final BluetoothSocket mmSocket;
-            private final InputStream mmInStream;
-            private final OutputStream mmOutStream;
-            private byte[] mmBuffer; // mmBuffer store for the stream
-
-            public ConnectedThread(BluetoothSocket socket) {
-                mmSocket = socket;
-                InputStream tmpIn = null;
-                OutputStream tmpOut = null;
-
-                // Get the input and output streams
-                try {
-                    tmpIn = socket.getInputStream();
-                } catch (IOException e) {
-
-                }
-                try {
-                    tmpOut = socket.getOutputStream();
-                } catch (IOException e) {
-
-                }
-
-                mmInStream = tmpIn;
-                mmOutStream = tmpOut;
-            }
-
-            public void run() {
-                mmBuffer = new byte[1024];
-                int numBytes; // bytes returned from read()
-
-                // Keep listening to the InputStream until an exception occurs.
-                while (true) {
-                    try {
-                        // Read from the InputStream.
-                        numBytes = mmInStream.read(mmBuffer);
-
-                        // Send the obtained bytes to the UI activity.
-                        Message readMsg = mHandler.obtainMessage(com.example.project_init.BluetoothFileTransfer.MessageConstants.MESSAGE_READ,
-                                numBytes, -1, mmBuffer);
-                        readMsg.sendToTarget();
-
-                    } catch (IOException e) {
-                        break;
-                    }
-                }
-            }
-
-            // Call this from the main activity to send data to the remote device.
-            public void write(byte[] bytes) {
-                try {
-                    mmOutStream.write(bytes);
-
-                    // Share the sent message with the UI activity.
-                    Message writtenMsg = mHandler.obtainMessage(com.example.project_init.BluetoothFileTransfer.MessageConstants.MESSAGE_WRITE,
-                            -1, -1, mmBuffer);
-                    writtenMsg.sendToTarget();
-                } catch (IOException e) {
-
-                }
-            }
-
-            // Call this method from the main activity to shut down the connection.
-            public void cancel() {
-                try {
-                    mmSocket.close();
-                } catch (IOException e) {
-
-                }
-            }
-        }
-
-        private class ServerThread extends Thread {
-            private final BluetoothServerSocket mmServerSocket;
-
-            public ServerThread() {
-                // Use a temporary object that is later assigned to mmServerSocket
-                // because mmServerSocket is final.
-                BluetoothServerSocket tmp = null;
-                try {
-                    // MY_UUID is the app's UUID string, also used by the client code.
-                    tmp = blueAdapt.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
-                } catch (IOException e) {
-
-                }
-                mmServerSocket = tmp;
-            }
-
-            public void run() {
-                BluetoothSocket socket = null;
-                // Keep listening until exception occurs or a socket is returned.
-                while (true) {
-                    try {
-                        socket = mmServerSocket.accept();
-                    } catch (IOException e) {
-                        break;
-                    }
-
-                    if (socket != null) {
-                        // A connection was accepted. Perform work associated with
-                        // the connection in a separate thread.
-                        BluetoothFileTransfer.ConnectedThread(new );
-                        cancel();
-                        break;
-                    }
-                }
-            }
-
-            // Closes the connect socket and causes the thread to finish.
-            public void cancel() {
-                try {
-                    mmServerSocket.close();
-                } catch (IOException e) {
-
-                }
-            }
-        }
-
-        private class ClientThread extends Thread {
-            private final BluetoothSocket mmSocket;
-            private final BluetoothDevice mmDevice;
-
-            public ClientThread(BluetoothDevice device) {
-                // Use a temporary object that is later assigned to mmSocket
-                // because mmSocket is final.
-                BluetoothSocket tmp = null;
-                mmDevice = device;
-
-                try {
-                    // Get a BluetoothSocket to connect with the given BluetoothDevice.
-                    // MY_UUID is the app's UUID string, also used in the server code.
-                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
-                } catch (IOException e) {
-
-                }
-                mmSocket = tmp;
-            }
-
-            public void run() {
-
-                // Cancel discovery because it otherwise slows down the connection.
-                blueAdapt.cancelDiscovery();
-
-                try {
-                    // Connect to the remote device through the socket. This call blocks
-                    // until it succeeds or throws an exception.
-                    mmSocket.connect();
-                } catch (IOException connectException) {
-
-                    // Unable to connect; close the socket and return.
-                    try {
-                        mmSocket.close();
-                    } catch (IOException closeException) {
-
-                    }
-                    return;
-                }
-
-                // The connection attempt succeeded. Perform work associated with
-                // the connection in a separate thread.
-                BluetoothFileTransfer.ConnectedThread(mmSocket);
-            }
-
-            // Closes the client socket and causes the thread to finish.
-            public void cancel() {
-                try {
-                    mmSocket.close();
-                } catch (IOException e) {
-
-                }
-            }
-        }
-    }
 }
