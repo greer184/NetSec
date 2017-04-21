@@ -16,7 +16,7 @@ import android.widget.Toast;
 public class BluetoothServerActivity extends Activity {
 
     private static final int DISCOVERABLE_REQUEST_CODE = 0x1;
-    private boolean CONTINUE_READ_WRITE = true;
+    private boolean ACTIVE = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +30,6 @@ public class BluetoothServerActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        android.util.Log.e("TrackingFlow", "Creating thread to start listening...");
         new Thread(reader).start();
     }
 
@@ -45,7 +44,7 @@ public class BluetoothServerActivity extends Activity {
             }catch(Exception e){
 
             }
-            CONTINUE_READ_WRITE = false;
+            ACTIVE = false;
         }
     }
 
@@ -69,7 +68,7 @@ public class BluetoothServerActivity extends Activity {
                 int bytesRead = -1;
                 byte[] buffer = new byte[bufferSize];
 
-                while(CONTINUE_READ_WRITE){
+                while(ACTIVE){
                     final StringBuilder sb = new StringBuilder();
                     bytesRead = inStream.read(buffer);
                     if (bytesRead != -1) {
@@ -101,7 +100,7 @@ public class BluetoothServerActivity extends Activity {
         @Override
         public void run() {
             int index = 0;
-            while(CONTINUE_READ_WRITE){
+            while(ACTIVE){
                 try {
 
                     index = index + 1;

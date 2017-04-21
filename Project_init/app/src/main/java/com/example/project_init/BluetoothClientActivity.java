@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 public class BluetoothClientActivity extends Activity {
 
-    private boolean CONTINUE_READ_WRITE = true;
+    private boolean ACTIVE = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,7 @@ public class BluetoothClientActivity extends Activity {
                 outStream.close();
                 socket.close();
 
-                CONTINUE_READ_WRITE = false;
+                ACTIVE = false;
             }catch(Exception e){
 
             }
@@ -87,7 +87,7 @@ public class BluetoothClientActivity extends Activity {
                 int bytesRead = -1;
                 byte[] buffer = new byte[bufferSize];
 
-                while(CONTINUE_READ_WRITE){
+                while(ACTIVE){
                     final StringBuilder sb = new StringBuilder();
                     bytesRead = inStream.read(buffer);
                     if (bytesRead != -1) {
@@ -119,9 +119,10 @@ public class BluetoothClientActivity extends Activity {
         @Override
         public void run() {
             int index = 0;
-            while (CONTINUE_READ_WRITE) {
+            while (ACTIVE) {
                 try {
-                    outStream.write("Message From Client" + (index++) + "\n");
+                    index = index + 1;
+                    outStream.write("Message From Client" + index + "\n");
                     outStream.flush();
                     Thread.sleep(2000);
                 } catch (Exception e) {
