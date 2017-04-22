@@ -28,8 +28,9 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
 
     Button sender, receiver;
     private BluetoothAdapter blueAdapt;
-    public static String EXTRA_DEVICE_ADDRESS = "device_address";
     private String path;
+    private String deviceToConnect;
+    private BluetoothFileTransfer service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,112 +40,76 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         Intent intent = getIntent();
         path = intent.getExtras().getString("Filename");
 
+        setup();
+
         sender = (Button) findViewById(R.id.sender);
         receiver = (Button) findViewById(R.id.receiver);
+
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        if (service != null) {
+            service.stop();
+        }
     }
 
     // New Client/Server code
-    public void server(View v){
+    public void server(View v) {
 
         // Need to ask user for desired name of file
+        ensureDiscoverable();
 
-        Intent intent = new Intent(this, BluetoothServerActivity.class);
-        intent.putExtra("Filename", path); // DO NOT KEEP, ONLY FOR TESTING, DANGER!!!
-        startActivity(intent);
+        // Setup as server
+        service.start();
     }
 
-    public void client(View v){
-        Intent intent = new Intent(this, BluetoothClientActivity.class);
-        intent.putExtra("Filename", path);
-        startActivity(intent);
-    }
+    public void client(View v) {
 
-    // Old discovery code, this could be useful for a display later down the road
-    // Right now, leave for testing purposes
-    public void discovery(View v){
+        // Find the server device
+        registerReceiver(discoveryResult, new IntentFilter(BluetoothDevice.ACTION_FOUND));
 
-        // Setup adapter
-        blueAdapt = BluetoothAdapter.getDefaultAdapter();
 
-        // Stop any attempts at discovery
-        if (blueAdapt.isDiscovering()){
-            blueAdapt.cancelDiscovery();
+        // Start discovery process to be found by the server
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if(adapter != null && adapter.isDiscovering()){
+            adapter.cancelDiscovery();
         }
+        adapter.startDiscovery();
 
-        // If there are already paired devices, get information from here
-        Set<BluetoothDevice> paired = blueAdapt.getBondedDevices();
+        // Get the BluetoothDevice object
+        BluetoothDevice device = blueAdapt.getRemoteDevice(deviceToConnect);
 
-        if (paired.size() > 0) {
-            for (BluetoothDevice device : paired) {
-                String stuff = device.getName() + "\n" + device.getAddress();
-                Toast.makeText(getApplicationContext(), stuff, Toast.LENGTH_LONG).show();
-            }
-        } else {
+        // Attempt to connect
+        service.connect(device);
+    }
 
-            // Start fresh discovery
-            blueAdapt.startDiscovery();
-
-            // Register for broadcasts when a device is discovered.
-            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            registerReceiver(mReceiver, filter);
-
+    private void ensureDiscoverable() {
+        if (blueAdapt.getScanMode() !=
+                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(discoverableIntent);
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // End discovery process
-        if (blueAdapt != null) {
-            blueAdapt.cancelDiscovery();
-        }
-
-        // Clear listeners
-        this.unregisterReceiver(mReceiver);
+    public void setup(){
+        service = new BluetoothFileTransfer();
     }
 
-    private AdapterView.OnItemClickListener deviceListener
-            = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
-
-            // Cancel discovery because we are connecting
-            blueAdapt.cancelDiscovery();
-
-            // Get the device MAC address from the view
-            String info = ((TextView) v).getText().toString();
-            String address = info.substring(info.length() - 17);
-
-            // Create the result Intent and include the MAC address
-            Intent intent = new Intent();
-            intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
-
-            // Set result and finish this Activity
-            setResult(Activity.RESULT_OK, intent);
-            finish();
-        }
-    };
-
-    // The BroadcastReceiver that listens for discovered devices
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-
-        @Override
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private final BroadcastReceiver discoveryResult = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
-            // When discovery finds a device
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-
-                // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                // If it's already paired, skip it, because it's been listed already
-                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                    String stuff = device.getName() + "\n" + device.getAddress();
-                    Toast.makeText(getApplicationContext(), stuff, Toast.LENGTH_LONG).show();
-                }
+                // MAC Address of the device
+                deviceToConnect = device.getAddress();
             }
         }
     };
 
+
 }
+

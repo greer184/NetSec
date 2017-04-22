@@ -34,22 +34,6 @@
                 android:value=".MainActivity"
                 />
         </activity>
-        <activity android:name=".BluetoothClientActivity"
-        android:parentActivityName=".SetUpBlueToothActivity">
-
-        <meta-data
-            android:name="android.support.PARENT_ACTIVITY"
-            android:value=".MainActivity"
-            />
-        </activity>
-        <activity android:name=".BluetoothServerActivity"
-            android:parentActivityName=".SetUpBlueToothActivity">
-
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity"
-                />
-        </activity>
         <activity android:name=".SetUpWifiActivity"
             android:parentActivityName=".MainActivity">
 
