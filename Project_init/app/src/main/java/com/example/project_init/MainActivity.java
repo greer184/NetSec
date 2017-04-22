@@ -127,7 +127,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         } else {
             File chosen = new File(path);
             try {
-                Uri.fromFile(chosen);
+                fileResource = Uri.fromFile(chosen);
                 Log.e("????", "is working!!!");
             } catch (Exception e) {
                 Log.e("????", "not working???");
