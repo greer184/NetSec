@@ -30,7 +30,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     private File[] myFiles;
     private List<String> myFilenames;
     private List<String> displayNames;
-    private Uri fileResource;
+    private String filePath;
 
     private BluetoothAdapter blueAdapt;
     Button bBlue;
@@ -125,6 +125,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
             }
 
             Intent intent = new Intent(this, SetUpBlueToothActivity.class);
+            intent.putExtra("Filename", filePath);
             startActivity(intent);
         }
     }
@@ -145,9 +146,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         // Get a content URI
         if (path.equals("None")) {
         } else {
-            File chosen = new File(path);
             try {
-                fileResource = Uri.fromFile(chosen);
+                filePath = path;
                 Log.e("????", "is working!!!");
             } catch (Exception e) {
                 Log.e("????", "not working???");

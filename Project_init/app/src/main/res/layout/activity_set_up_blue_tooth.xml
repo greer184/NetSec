@@ -22,7 +22,7 @@
         android:id="@+id/sender"
         android:layout_gravity="center_horizontal"
         android:clickable="true"
-        android:onClick="server" />
+        android:onClick="client" />
 
     <Button
         android:layout_width="wrap_content"
@@ -31,7 +31,7 @@
         android:id="@+id/receiver"
         android:layout_gravity="center_horizontal"
         android:clickable="true"
-        android:onClick="client" />
+        android:onClick="server" />
 
 
 </LinearLayout>

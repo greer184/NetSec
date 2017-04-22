@@ -29,6 +29,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
     Button sender, receiver;
     private BluetoothAdapter blueAdapt;
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
+    private String path;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         setContentView(R.layout.activity_set_up_blue_tooth);
 
         Intent intent = getIntent();
+        path = intent.getExtras().getString("Filename");
 
         sender = (Button) findViewById(R.id.sender);
         receiver = (Button) findViewById(R.id.receiver);
@@ -43,12 +45,17 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
 
     // New Client/Server code
     public void server(View v){
+
+        // Need to ask user for desired name of file
+
         Intent intent = new Intent(this, BluetoothServerActivity.class);
+        intent.putExtra("Filename", path); // DO NOT KEEP, ONLY FOR TESTING, DANGER!!!
         startActivity(intent);
     }
 
     public void client(View v){
         Intent intent = new Intent(this, BluetoothClientActivity.class);
+        intent.putExtra("Filename", path);
         startActivity(intent);
     }
 
