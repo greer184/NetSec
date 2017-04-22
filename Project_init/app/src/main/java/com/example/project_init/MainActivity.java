@@ -24,6 +24,7 @@ import java.util.List;
 
 public class MainActivity extends Activity implements AdapterView.OnItemSelectedListener{
     private static final int READ_PERMISSION = 1;
+    private static final int WRITE_PERMISSION = 2;
 
     private File storage;
     private File[] myFiles;
@@ -40,6 +41,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Permission for reading from external storage(for Marshmallow and up)
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -52,6 +54,24 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                         READ_PERMISSION);
+            }
+        } else {
+            Log.e("????", "granted");
+        }
+
+        // Permission for writing from external storage(for Marshmallow and up)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+            } else {
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        WRITE_PERMISSION);
             }
         } else {
             Log.e("????", "granted");
@@ -150,6 +170,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                 }
                 return;
             }
+
+            case WRITE_PERMISSION: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {
+                }
+                return;
+            }
+
         }
     }
 
