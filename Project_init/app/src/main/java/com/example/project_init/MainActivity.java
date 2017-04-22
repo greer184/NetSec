@@ -28,6 +28,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     private File storage;
     private File[] myFiles;
     private List<String> myFilenames;
+    private List<String> displayNames;
     private Uri fileResource;
 
     private BluetoothAdapter blueAdapt;
@@ -58,19 +59,23 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
         // Get files from directory
         storage = new File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString());
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString());
         myFiles = storage.listFiles();
 
         Log.e("????", storage.canRead() + "/" + storage.getPath());
         myFilenames = new ArrayList<String>();
+        displayNames = new ArrayList<String>();
+        myFilenames.add("None");
+        displayNames.add("None Selected");
         for (int i = 0; i < myFiles.length; i++){
             myFilenames.add(myFiles[i].getAbsolutePath());
+            displayNames.add(myFiles[i].getName());
         }
 
         // Create spinner which to select file
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         ArrayAdapter<String> adapter = new ArrayAdapter(this,
-                android.R.layout.simple_spinner_item, myFilenames);
+                android.R.layout.simple_spinner_item, displayNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
@@ -113,14 +118,20 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                                int pos, long id) {
 
         // Get file from spinner
-        String selection = (String) parent.getItemAtPosition(pos);
-        File chosen = new File(selection);
+        String selection = displayNames.get(pos);
+        String path = myFilenames.get(pos);
         Toast.makeText(getApplicationContext(), "Selected: " + selection, Toast.LENGTH_LONG).show();
 
-        // Use the FileProvider to get a content URI
-        try {
-            Uri.fromFile(chosen);
-        } catch (Exception e) {
+        // Get a content URI
+        if (path.equals("None")) {
+        } else {
+            File chosen = new File(path);
+            try {
+                Uri.fromFile(chosen);
+                Log.e("????", "is working!!!");
+            } catch (Exception e) {
+                Log.e("????", "not working???");
+            }
         }
     }
 
