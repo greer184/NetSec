@@ -112,6 +112,17 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         bytes = null;
         int length = ByteBuffer.wrap(len).getInt();
 
+        // Receive name of file from client
+        while(bytes == null){}
+        byte[] b = bytes;
+        bytes = null;
+        String fName = null;
+        try {
+            fName = new String(b, "US-ASCII");
+        } catch(Exception e) {
+            Log.e("????", "Issue retrieving filename");
+        }
+
         // Build file until file transfer is complete
         byte[] received = new byte[length];
         while(service.getState() == BluetoothFileTransfer.STATE_CONNECTED) {
@@ -141,8 +152,8 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         }
 
         // Convert to File
-        File f = new File(path);
         try {
+            File f = new File(fName);
             FileOutputStream fOut = new FileOutputStream(path);
             fOut.write(received);
             fOut.close();
@@ -217,6 +228,13 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         b.putInt(byteFile.length);
         byte[] len = b.array();
         service.write(len);
+
+        // Convert file path and send away
+        try {
+            service.write(path.getBytes("UTF-8"));
+        } catch (Exception e){
+            Log.e("????", "Filename transfer issue");
+        }
 
         // Send in 1024 byte chunks
         int start = 0;
