@@ -4,8 +4,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.os.Handler;
 import android.util.Log;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
@@ -22,6 +22,7 @@ public class BluetoothFileTransfer {
     private AcceptThread acceptThread;
     private ConnectThread connectThread;
     private ConnectedThread connectedThread;
+    private Handler blueHandler;
     private int state;
     private int newState;
 
@@ -30,8 +31,15 @@ public class BluetoothFileTransfer {
     public static final int STATE_CONNECTING = 2;
     public static final int STATE_CONNECTED = 3;
 
+    public static final int MESSAGE_STATE_CHANGE = 1;
+    public static final int MESSAGE_READ = 2;
+    public static final int MESSAGE_WRITE = 3;
+    public static final int MESSAGE_DEVICE_NAME = 4;
+    public static final int MESSAGE_TOAST = 5;
+
     // Constructor for class
-    public BluetoothFileTransfer() {
+    public BluetoothFileTransfer(Handler handler) {
+        blueHandler = handler;
         blueAdapt = BluetoothAdapter.getDefaultAdapter();
         state = STATE_NONE;
         newState = state;
@@ -102,6 +110,19 @@ public class BluetoothFileTransfer {
 
         connectedThread = new ConnectedThread(socket, type);
         connectedThread.start();
+    }
+
+    // Allows us to access write
+    public void write(byte[] out) {
+        // Create temporary object
+        ConnectedThread r;
+        // Synchronize a copy of the ConnectedThread
+        synchronized (this) {
+            if (state != STATE_CONNECTED) return;
+            r = connectedThread;
+        }
+        // Perform the write unsynchronized
+        r.write(out);
     }
 
     // The connection failed
@@ -212,7 +233,7 @@ public class BluetoothFileTransfer {
 
             // Try to connect with the server
             try {
-                temp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                temp = server.createRfcommSocketToServiceRecord(MY_UUID);
             }catch (Exception e){
                 Log.e("????", "Connection to server failed");
             }
@@ -283,14 +304,32 @@ public class BluetoothFileTransfer {
 
         }
 
-        // This is the reader
+        // This is the reader, where we are always reading
         public void run() {
+            byte[] buffer = new byte[1024];
+            int bytes;
+            while (state == STATE_CONNECTED) {
+                try {
+                    // Read from the InputStream
+                    bytes = inStream.read(buffer);
 
+                    // Send the obtained bytes to the UI Activity
+                    blueHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+
+                } catch (Exception e) {
+                    connectionLost();
+                }
+
+            }
         }
 
         // This is the writer
-        public void write() {
+        public void write(byte[] buffer) {
+            try {
+                outStream.write(buffer);
+            } catch (Exception e) {
 
+            }
         }
 
         public void cancel() {
