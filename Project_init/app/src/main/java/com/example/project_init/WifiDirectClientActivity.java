@@ -1,7 +1,6 @@
 package com.example.project_init;
 
 
-import java.io.File;
 import java.util.ArrayList;
 
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -17,8 +16,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -51,13 +49,14 @@ public class WifiDirectClientActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d("intoClient", "made into client activity");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.wifidirect_client_activity);
+        setContentView(R.layout.wifidirect_server_activity);
         //getActionBar().setDisplayHomeAsUpEnabled(true);
 
         wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 
-        //wifichannel = wifiManager.initialize(this, getMainLooper(), null);
+        wifichannel = wifiManager.initialize(this, getMainLooper(), null);
         wifiClientReceiver = new WifiDirectBroadcastReceiverClient(wifiManager, wifichannel, this);
 
         wifiClientReceiverIntentFilter = new IntentFilter();

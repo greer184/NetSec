@@ -3,9 +3,12 @@ package com.example.project_init;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
@@ -36,6 +39,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     private BluetoothAdapter blueAdapt;
     Button bBlue;
     Button bWifi;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,8 +156,26 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     }
 
     public void selectWifi(View view) {
-        Intent intent = new Intent(this, SetUpWifiActivity.class);
-        startActivity(intent);
+
+        WifiManager wifi = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        if(wifi == null){
+            Toast.makeText(getApplicationContext(), "Unable to use Wifi", Toast.LENGTH_LONG).show();
+        } else {
+
+            // Turn on Wifi if off
+            if (!wifi.isWifiEnabled()) {
+                Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(turnOn, 0);
+                Toast.makeText(getApplicationContext(),
+                        "Wifi enabled", Toast.LENGTH_LONG).show();
+            }
+
+            Intent intent = new Intent(this, SetUpWifiActivity.class);
+            intent.putExtra("Filename", filePath);
+            startActivity(intent);
+        }
+
     }
 
     public void onItemSelected(AdapterView<?> parent, View view,
