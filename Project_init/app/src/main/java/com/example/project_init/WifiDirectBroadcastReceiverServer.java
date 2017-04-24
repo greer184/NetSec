@@ -1,5 +1,6 @@
 package com.example.project_init;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,11 +14,11 @@ public class WifiDirectBroadcastReceiverServer extends BroadcastReceiver {
     private Channel channel;
     private MainActivity activity;
 
-    public WifiDirectBroadcastReceiverServer(WifiP2pManager manager, Channel channel,MainActivity activity) {
+    public WifiDirectBroadcastReceiverServer(WifiP2pManager manager, Channel channel,Activity activity) {
         super();
         this.manager = manager;
         this.channel = channel;
-        this.activity = activity;
+        //this.activity = activity;
 
         //activity.setServerStatus("Server Broadcast Receiver created");
 
