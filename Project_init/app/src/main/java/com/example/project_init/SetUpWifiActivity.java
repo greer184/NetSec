@@ -7,6 +7,8 @@ import android.view.View;
 
 public class SetUpWifiActivity extends AppCompatActivity {
 
+    private String path;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -14,17 +16,19 @@ public class SetUpWifiActivity extends AppCompatActivity {
     }
 
     public void sendFiles(View view){
-
+        Intent pastIntent = getIntent();
+        path = pastIntent.getExtras().getString("Filename");
         Intent intent = new Intent(this, WifiDirectServerActivity.class);
-        //intent.putExtra("Filename", filePath);
+        intent.putExtra("Filename", path);
         startActivity(intent);
 
     }
 
     public void receiveFiles(View view){
-
+        Intent pastIntent = getIntent();
+        path = pastIntent.getExtras().getString("Filename");
         Intent intent = new Intent(this, WifiDirectClientActivity.class);
-        //intent.putExtra("Filename", filePath);
+        intent.putExtra("Filename", path);
         startActivity(intent);
 
     }

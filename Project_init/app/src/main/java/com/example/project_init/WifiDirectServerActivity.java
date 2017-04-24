@@ -21,7 +21,6 @@ public class WifiDirectServerActivity extends Activity{
         public final int fileRequestID = 55;
         public final int port = 7950;
 
-
         private WifiP2pManager wifiManager;
         private WifiP2pManager.Channel wifichannel;
         private BroadcastReceiver wifiServerReceiver;
@@ -43,6 +42,8 @@ public class WifiDirectServerActivity extends Activity{
             setContentView(R.layout.wifidirect_client_activity);
 
             Intent intent  = getIntent();
+            path = intent.getExtras().getString("Filename");
+
 
             wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
             wifichannel = wifiManager.initialize(this, getMainLooper(), null);
@@ -56,10 +57,9 @@ public class WifiDirectServerActivity extends Activity{
 
 
             //set status to stopped
-            //TextView serverServiceStatus = (TextView) findViewById(R.id.server_status_text);
-           // serverServiceStatus.setText(R.string.server_stopped);
+            TextView serverServiceStatus = (TextView) findViewById(R.id.server_status_text);
+           //serverServiceStatus.setText(R.string.server_stopped);
 
-            path = "/";
             downloadTarget = new File(path);
 
             serverServiceIntent = null;
@@ -69,33 +69,17 @@ public class WifiDirectServerActivity extends Activity{
 
             registerReceiver(wifiServerReceiver, wifiServerReceiverIntentFilter);
 
-/*
+
         wifiManager.createGroup(wifichannel,  new WifiP2pManager.ActionListener()  {
     	    public void onSuccess() {
-    	    	setServerFileTransferStatus("WiFi Group creation successful");
+    	    	setServerFileTransferStatus("Wifi-Direct connection creation successful");
     	    	//Group creation successful
     	    }
     	    public void onFailure(int reason) {
-    	    	setServerFileTransferStatus("WiFi Group creation failed");
+    	    	setServerFileTransferStatus("Wifi-Direct connection creation failed");
     	    	//Group creation failed
     	    }
     	});
-    	*/
-
-        }
-
-        @Override
-        public boolean onCreateOptionsMenu(Menu menu) {
-            //getMenuInflater().inflate(R.menu.activity_main, menu);
-            return true;
-        }
-
-        public void startFileBrowseActivity(View view) {
-
-            //Intent clientStartIntent = new Intent(this, FileBrowser.class);
-           // startActivityForResult(clientStartIntent, fileRequestID);
-            //Path returned to onActivityResult
-
         }
 
         @Override
@@ -125,7 +109,6 @@ public class WifiDirectServerActivity extends Activity{
                 {
                     setServerFileTransferStatus("The selected file is not a directory. Please select a valid download directory.");
                 }
-
             }
         }
 
@@ -184,17 +167,13 @@ public class WifiDirectServerActivity extends Activity{
             }
             else
             {
-                //Set status to already running
                 TextView serverServiceStatus = (TextView) findViewById(R.id.server_status_text);
                 serverServiceStatus.setText("The server is already running");
-
             }
         }
 
         public void stopServer(View view) {
 
-
-            //stop download thread
             if(serverServiceIntent != null)
             {
                 stopService(serverServiceIntent);
@@ -202,7 +181,6 @@ public class WifiDirectServerActivity extends Activity{
             }
 
         }
-
 
         public void startClientActivity(View view) {
 
@@ -220,8 +198,6 @@ public class WifiDirectServerActivity extends Activity{
         @Override
         protected void onPause() {
             super.onPause();
-            //stopServer(null);
-            //unregisterReceiver(wifiServerReceiver);
         }
 
         @Override
@@ -230,19 +206,13 @@ public class WifiDirectServerActivity extends Activity{
 
             stopServer(null);
 
-            //stopService(serverServiceIntent);
-
             //Unregister broadcast receiver
             try {
                 unregisterReceiver(wifiServerReceiver);
             } catch (IllegalArgumentException e) {
-                // This will happen if the server was never running and the stop
-                // button was pressed.
-                // Do nothing in this case.
+
             }
         }
-
-
 
         public void setServerWifiStatus(String message)
         {

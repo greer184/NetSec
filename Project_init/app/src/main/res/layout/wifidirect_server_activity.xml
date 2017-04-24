@@ -22,6 +22,12 @@
         android:layout_height="wrap_content"
         android:text="server-client status" />
 
+    <TextView
+        android:id="@+id/file_transfer_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="File Transfer Status" />
+
     <ListView
         android:id="@+id/peers_listview"
         android:layout_width="match_parent"
