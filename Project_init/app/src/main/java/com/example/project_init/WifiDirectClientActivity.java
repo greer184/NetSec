@@ -54,7 +54,7 @@ public class WifiDirectClientActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         Log.d("intoClient", "made into client activity");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.wifidirect_server_activity);
+        setContentView(R.layout.wifidirect_client_activity);
 
         Intent intent  = getIntent();
         path = intent.getExtras().getString("Filename");

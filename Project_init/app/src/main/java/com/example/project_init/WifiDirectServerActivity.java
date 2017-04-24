@@ -8,9 +8,7 @@ import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
@@ -39,7 +37,7 @@ public class WifiDirectServerActivity extends Activity{
         protected void onCreate(Bundle savedInstanceState) {
             Log.d("intoClient", "made into server activity");
             super.onCreate(savedInstanceState);
-            setContentView(R.layout.wifidirect_client_activity);
+            setContentView(R.layout.wifidirect_server_activity);
 
             Intent intent  = getIntent();
             path = intent.getExtras().getString("Filename");

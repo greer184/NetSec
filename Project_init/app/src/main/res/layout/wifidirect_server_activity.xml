@@ -1,42 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:weightSum="1">
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/textView6"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SEND FILE CLIENT" />
+        android:text="RECEIVE FILE SERVER" />
 
     <TextView
-        android:id="@+id/client_wifi_status_text"
+        android:id="@+id/server_wifi_status_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="wifi status" />
+        android:text="client wifi status" />
 
     <TextView
-        android:id="@+id/client_status_text"
+        android:id="@+id/server_status_text_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="server-client status" />
+        android:text="client-server status" />
 
     <TextView
-        android:id="@+id/file_transfer_status"
+        android:id="@+id/server_status_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="File Transfer Status" />
-
-    <ListView
-        android:id="@+id/peers_listview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:text="server status text" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/server_file_transfer_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView" />
-
+        android:layout_weight="0.20"
+        android:text="File transfer progress" />
 </LinearLayout>
