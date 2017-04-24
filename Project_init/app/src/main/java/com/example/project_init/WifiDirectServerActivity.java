@@ -54,6 +54,7 @@ public class WifiDirectServerActivity extends Activity{
             wifiServerReceiverIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
             wifiServerReceiverIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
+
             //set status to stopped
             //TextView serverServiceStatus = (TextView) findViewById(R.id.server_status_text);
            // serverServiceStatus.setText(R.string.server_stopped);
