@@ -40,7 +40,7 @@ public class WifiDirectServerActivity extends Activity{
         protected void onCreate(Bundle savedInstanceState) {
             Log.d("intoClient", "made into server activity");
             super.onCreate(savedInstanceState);
-            setContentView(R.layout.wifidirect_server_activity);
+            setContentView(R.layout.wifidirect_client_activity);
 
             Intent intent  = getIntent();
 

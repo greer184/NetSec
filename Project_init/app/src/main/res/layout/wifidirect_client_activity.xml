@@ -20,7 +20,7 @@
         android:id="@+id/server_status_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:text="server status text" />
 
     <TextView
         android:id="@+id/server_file_transfer_status"
