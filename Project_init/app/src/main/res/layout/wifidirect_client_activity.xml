@@ -5,6 +5,12 @@
     android:weightSum="1">
 
     <TextView
+        android:id="@+id/textView6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RECEIVE FILE CLIENT" />
+
+    <TextView
         android:id="@+id/server_wifi_status_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
