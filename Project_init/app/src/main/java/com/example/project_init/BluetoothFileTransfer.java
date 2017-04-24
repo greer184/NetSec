@@ -5,7 +5,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
@@ -307,14 +310,27 @@ public class BluetoothFileTransfer {
         // This is the reader, where we are always reading
         public void run() {
             byte[] buffer = new byte[1024];
-            int bytes;
+            int bytes = -1;
             while (state == STATE_CONNECTED) {
                 try {
-                    // Read from the InputStream
-                    bytes = inStream.read(buffer);
 
-                    // Send the obtained bytes to the UI Activity
-                    blueHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+                    // We're doing something
+                    Log.e("????", "Running");
+
+                    // Read from the InputStream if there's something inside
+                    if (inStream.available() > 0) {
+                        bytes = inStream.read(buffer);
+
+                        if (bytes > -1){
+                            Log.e("????", "File Transfer Issue");
+                        }
+
+                        Log.e("????", "read");
+                        // Send the obtained bytes to the UI Activity
+                        Message msg = blueHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer);
+                        msg.sendToTarget();
+                        Log.e("????", "sent");
+                    }
 
                 } catch (Exception e) {
                     connectionLost();

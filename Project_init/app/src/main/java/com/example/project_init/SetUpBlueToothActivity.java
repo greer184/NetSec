@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -62,6 +63,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
 
         sender = (Button) findViewById(R.id.sender);
         receiver = (Button) findViewById(R.id.receiver);
+
     }
 
     public void onDestroy() {
@@ -89,12 +91,19 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
 
         // Generate key part
         DiffieHellman dh = new DiffieHellman();
-        service.write(dh.generatePublicKey());
 
         // Receive other part from client
-        while(bytes == null){}
+        bytes = null;
+        while(true){
+            if(bytes != null){
+                break;
+            }
+        }
         byte[] keyPart = bytes;
         bytes = null;
+
+        // Send key part
+        service.write(dh.generatePublicKey());
 
         // Build decryption mechanism
         Cipher c = null;
@@ -107,13 +116,21 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         }
 
         // Receive length of file from client
-        while(bytes == null){}
+        while(true){
+            if(bytes != null){
+                break;
+            }
+        }
         byte[] len = bytes;
         bytes = null;
         int length = ByteBuffer.wrap(len).getInt();
 
         // Receive name of file from client
-        while(bytes == null){}
+        while(true){
+            if(bytes != null){
+                break;
+            }
+        }
         byte[] b = bytes;
         bytes = null;
         String fName = null;
@@ -154,9 +171,11 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         // Convert to File
         try {
             File f = new File(fName);
-            FileOutputStream fOut = new FileOutputStream(path);
+            FileOutputStream fOut = new FileOutputStream(f);
             fOut.write(received);
             fOut.close();
+            Toast.makeText(getApplicationContext(), "File Transfer Complete",
+                    Toast.LENGTH_LONG).show();
         }  catch (Exception e){
             Log.e("????", "File save didn't work");
         }
@@ -164,21 +183,47 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
 
     public void client(View v) {
 
-        // Find the server device
-        registerReceiver(discoveryResult, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+        // Set device to connect to be null
+        deviceToConnect = null;
 
         // Start discovery process to be found by the server
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if(adapter != null && adapter.isDiscovering()){
             adapter.cancelDiscovery();
         }
-        adapter.startDiscovery();
+
+        // Find the server device
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(discoveryResult, filter);
+
+        // If there are already paired devices, get information from here
+        Set<BluetoothDevice> paired = blueAdapt.getBondedDevices();
+        if (paired.size() > 0) {
+            for (BluetoothDevice device : paired) {
+                deviceToConnect = device.getAddress();
+                Log.e("????", deviceToConnect);
+                break;
+            }
+        } else {
+            adapter.startDiscovery();
+            Log.e("????", "reached discovery");
+        }
+
+        Log.e("????", deviceToConnect);
+        while(true){
+            if (deviceToConnect != null){
+                adapter.cancelDiscovery();
+                break;
+            }
+        }
 
         // Get the BluetoothDevice object
+        Log.e("????", "ready to connect");
         BluetoothDevice device = blueAdapt.getRemoteDevice(deviceToConnect);
 
         // Attempt to connect
         service.connect(device);
+        Log.e("????", "connected");
 
         // Wait for connection
         while(true){
@@ -188,13 +233,20 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         }
 
         // Generate key part
+        Log.e("????", "Diffie Hellman");
         DiffieHellman dh = new DiffieHellman();
         service.write(dh.generatePublicKey());
 
         // Receive other part from client
-        while(bytes == null){}
+        bytes = null;
+        while(true){
+            if(bytes != null){
+                break;
+            }
+        }
         byte[] keyPart = bytes;
         bytes = null;
+        Log.e("????", "Diffie Hellman Received");
 
         // Build encryption mechanism
         Cipher c = null;
@@ -206,6 +258,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
             Log.e("????", "Issues with key generation");
         }
 
+        Log.e("????", "Key Gen worked");
         // Convert file to byte array
         File f = new File(path);
         byte[] byteFile = new byte[(int) f.length()];
@@ -223,6 +276,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
             Log.e("????", "Encryption failed");
         }
 
+        Log.e("????", "Encryption worked");
         // Convert file length and sent away
         ByteBuffer b = ByteBuffer.allocate(4);
         b.putInt(byteFile.length);
@@ -236,9 +290,9 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
             Log.e("????", "Filename transfer issue");
         }
 
+        Log.e("????", "Sending File");
         // Send in 1024 byte chunks
         int start = 0;
-        boolean finished = false;
         while(service.getState() == BluetoothFileTransfer.STATE_CONNECTED) {
             byte[] toSend = new byte[1024];
             for (int i = 0; i < 1024; i++){
@@ -255,10 +309,14 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
 
             // If finished, exit loop
             if (start >= byteFile.length){
+                Toast.makeText(getApplicationContext(), "File Transfer Complete",
+                        Toast.LENGTH_LONG).show();
                 break;
             }
 
         }
+
+        Log.e("????", "Everything works on this side");
 
         // Close connection now we are done
         service.stop();
@@ -280,26 +338,33 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
 
     // Create a BroadcastReceiver for ACTION_FOUND.
     private final BroadcastReceiver discoveryResult = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                // MAC Address of the device
-                deviceToConnect = device.getAddress();
+            @Override
+            public void onReceive(Context context, Intent intent){
+                String action = intent.getAction();
+                Log.e("????", "wrong action");
+                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                    // MAC Address of the device
+                    Log.e("????", "checked");
+                    deviceToConnect = device.getAddress();
+                }
             }
-        }
     };
 
     private final Handler blueHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
+
+            Log.e("????", "Got Message");
             switch (msg.what) {
                 case MESSAGE_STATE_CHANGE:
                     break;
                 case MESSAGE_WRITE:
                     break;
                 case MESSAGE_READ:
+                    Log.e("????", "received");
                     bytes = (byte[]) msg.obj;
                     break;
                 case MESSAGE_DEVICE_NAME:
