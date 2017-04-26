@@ -40,8 +40,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     Button bBlue;
     Button bWifi;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +60,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                         ACCESS_PERMISSION);
             }
         } else {
-            Log.e("????", "granted");
+            Log.e("????", "coarse granted");
         }
 
         // Permission for writing from external storage(for Marshmallow and up)
@@ -80,26 +78,26 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                         WRITE_PERMISSION);
             }
         } else {
-            Log.e("????", "granted");
+            Log.e("????", "write granted");
         }
 
 
         // Permission for writing from external storage(for Marshmallow and up)
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    Manifest.permission.READ_EXTERNAL_STORAGE)) {
 
             } else {
 
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        WRITE_PERMISSION);
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        READ_PERMISSION);
             }
         } else {
-            Log.e("????", "granted");
+            Log.e("????", "read granted");
         }
 
         // Get files from directory

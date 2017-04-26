@@ -11,7 +11,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -32,6 +31,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity"
                 />
+
+            <receiver android:name=".myReceiver" >
+                <intent-filter >
+                    <action android:name="android.bluetooth.BluetoothDevice.ACTION_FOUND"/>
+                    <action android:name="android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED"/>
+                </intent-filter>
+            </receiver>
+
         </activity>
         <activity android:name=".SetUpWifiActivity"
             android:parentActivityName=".MainActivity">
@@ -57,6 +64,7 @@
                 android:value=".MainActivity"
                 />
         </activity>
+
     </application>
 
 </manifest>

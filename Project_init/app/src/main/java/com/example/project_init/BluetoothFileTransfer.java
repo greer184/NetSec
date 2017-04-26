@@ -111,6 +111,7 @@ public class BluetoothFileTransfer {
             acceptThread = null;
         }
 
+        Log.e("????", "Connection completed");
         connectedThread = new ConnectedThread(socket, type);
         connectedThread.start();
     }
@@ -247,9 +248,6 @@ public class BluetoothFileTransfer {
 
         public void run(){
 
-            // Kill discovery, to speed things up
-            blueAdapt.cancelDiscovery();
-
             // Attempt connection to bluetooth socket
             try {
                 clientSock.connect();
@@ -313,9 +311,6 @@ public class BluetoothFileTransfer {
             int bytes = -1;
             while (state == STATE_CONNECTED) {
                 try {
-
-                    // We're doing something
-                    Log.e("????", "Running");
 
                     // Read from the InputStream if there's something inside
                     if (inStream.available() > 0) {

@@ -1,24 +1,21 @@
 package com.example.project_init;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,24 +23,26 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.security.Key;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SetUpBlueToothActivity extends AppCompatActivity {
+public class SetUpBlueToothActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
-    Button sender, receiver;
+    Button sender, receiver, pair;
     private BluetoothAdapter blueAdapt;
     private String path;
+    private List<String> Names;
+    private List<String> MACs;
     private String deviceToConnect;
     private BluetoothFileTransfer service;
     private byte[] bytes;
+    private int state;
 
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
@@ -60,10 +59,20 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         path = intent.getExtras().getString("Filename");
 
         setup();
+        deviceToConnect = null;
 
         sender = (Button) findViewById(R.id.sender);
         receiver = (Button) findViewById(R.id.receiver);
+        pair = (Button) findViewById(R.id.pair);
 
+        Names = new ArrayList<String>();
+        MACs = new ArrayList<String>();
+
+        // Build registers
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        registerReceiver(myReceiver, filter);
     }
 
     public void onDestroy() {
@@ -71,18 +80,17 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         if (service != null) {
             service.stop();
         }
+        unregisterReceiver(myReceiver);
     }
 
     // New Client/Server code
     public void server(View v) {
 
-        // Need to ask user for desired name of file
-        ensureDiscoverable();
-
         // Setup as server
         service.start();
 
         // Waited until state is connected
+        Log.e("????", "test");
         while(true){
             if(service.getState() == BluetoothFileTransfer.STATE_CONNECTED){
                 break;
@@ -90,7 +98,9 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         }
 
         // Generate key part
+        Log.e("????", "pass pass");
         DiffieHellman dh = new DiffieHellman();
+        Log.e("????", "Diffie Hellman");
 
         // Receive other part from client
         bytes = null;
@@ -174,7 +184,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
             FileOutputStream fOut = new FileOutputStream(f);
             fOut.write(received);
             fOut.close();
-            Toast.makeText(getApplicationContext(), "File Transfer Complete",
+            Toast.makeText(getApplicationContext(), "File Received: " + f.getName(),
                     Toast.LENGTH_LONG).show();
         }  catch (Exception e){
             Log.e("????", "File save didn't work");
@@ -182,40 +192,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
     }
 
     public void client(View v) {
-
-        // Set device to connect to be null
-        deviceToConnect = null;
-
-        // Start discovery process to be found by the server
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if(adapter != null && adapter.isDiscovering()){
-            adapter.cancelDiscovery();
-        }
-
-        // Find the server device
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(discoveryResult, filter);
-
-        // If there are already paired devices, get information from here
-        Set<BluetoothDevice> paired = blueAdapt.getBondedDevices();
-        if (paired.size() > 0) {
-            for (BluetoothDevice device : paired) {
-                deviceToConnect = device.getAddress();
-                Log.e("????", deviceToConnect);
-                break;
-            }
-        } else {
-            adapter.startDiscovery();
-            Log.e("????", "reached discovery");
-        }
-
-        Log.e("????", deviceToConnect);
-        while(true){
-            if (deviceToConnect != null){
-                adapter.cancelDiscovery();
-                break;
-            }
-        }
 
         // Get the BluetoothDevice object
         Log.e("????", "ready to connect");
@@ -336,22 +312,89 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
         service = new BluetoothFileTransfer(blueHandler);
     }
 
-    // Create a BroadcastReceiver for ACTION_FOUND.
-    private final BroadcastReceiver discoveryResult = new BroadcastReceiver() {
+    public void discovery(View v){
 
-            @Override
-            public void onReceive(Context context, Intent intent){
-                String action = intent.getAction();
-                Log.e("????", "wrong action");
-                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        // Set device to connect to be null
+        deviceToConnect = null;
 
-                    // MAC Address of the device
-                    Log.e("????", "checked");
-                    deviceToConnect = device.getAddress();
+        // Start discovery process to be found by the server
+        BluetoothAdapter blueAdapt = BluetoothAdapter.getDefaultAdapter();
+        if(blueAdapt != null && blueAdapt.isDiscovering()){
+            blueAdapt.cancelDiscovery();
+        }
+
+        // Start discovering devices
+        blueAdapt.startDiscovery();
+
+        // If there are already paired devices, get information from here
+        Set<BluetoothDevice> paired = blueAdapt.getBondedDevices();
+        if (paired.size() > 0) {
+            for (BluetoothDevice device : paired) {
+                if (device.getName() != null) {
+                    Names.add(device.getName());
+                } else {
+                    Names.add("Unnamed Device");
                 }
+                MACs.add(device.getAddress());
+                break;
             }
+        }
+
+        // Start Discovery for other devices
+        Log.e("????", "reached discovery");
+
+        // Sleep for 12 Seconds
+        try {
+            Thread.sleep(12000);
+        } catch (Exception e){
+
+        }
+
+        // Discovery is over
+        blueAdapt.cancelDiscovery();
+        Log.e("????", "ended discovery");
+
+        // Create a spinner to select MAC Address
+        Spinner spinner = (Spinner) findViewById(R.id.spinner);
+        ArrayAdapter<String> adapter = new ArrayAdapter(this,
+                android.R.layout.simple_spinner_item, Names);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(this);
+    }
+
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+            Log.e("????", "wrong action");
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+
+                    // Get MAC Address and name of device
+                    Log.e("????", "checked");
+                    if (device.getName() != null) {
+                        Names.add(device.getName());
+                    } else {
+                        Names.add("Unnamed Device");
+                    }
+                    MACs.add(device.getAddress());
+                }
+
+            }
+        }
     };
+
+    public void discoverable(View v){
+
+        // Need to ask user for desired name of file
+        ensureDiscoverable();
+    }
 
     private final Handler blueHandler = new Handler() {
         @Override
@@ -378,5 +421,14 @@ public class SetUpBlueToothActivity extends AppCompatActivity {
     };
 
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        deviceToConnect = MACs.get(position);
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
 }
 

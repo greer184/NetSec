@@ -12,17 +12,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="File Transfer"
+        android:text="Reciever Buttons: "
         android:id="@+id/text" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="File Sender"
-        android:id="@+id/sender"
+        android:text="Reveal Device"
+        android:id="@+id/pair"
         android:layout_gravity="center_horizontal"
         android:clickable="true"
-        android:onClick="client" />
+        android:onClick="discoverable" />
 
     <Button
         android:layout_width="wrap_content"
@@ -33,5 +33,34 @@
         android:clickable="true"
         android:onClick="server" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Sender Buttons: "
+        android:id="@+id/text2" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Find Device"
+        android:id="@+id/find"
+        android:layout_gravity="center_horizontal"
+        android:clickable="true"
+        android:onClick="discovery" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="File Sender"
+        android:id="@+id/sender"
+        android:layout_gravity="center_horizontal"
+        android:clickable="true"
+        android:onClick="client" />
+
+    <Spinner
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner"/>
 
 </LinearLayout>
