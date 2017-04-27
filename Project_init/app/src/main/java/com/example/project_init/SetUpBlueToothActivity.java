@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -23,9 +24,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.security.Key;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -38,17 +41,19 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
     Button sender, receiver, pair;
     private BluetoothAdapter blueAdapt;
     private String path;
+    private String name;
     private List<String> Names;
     private List<String> MACs;
     private String deviceToConnect;
     private BluetoothFileTransfer service;
-    private byte[] bytes;
 
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
+
+    public static final int PACKET_LENGTH = 512;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +62,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         path = intent.getExtras().getString("Filename");
+        name = intent.getExtras().getString("Name");
 
         blueAdapt = BluetoothAdapter.getDefaultAdapter();
 
@@ -109,32 +115,39 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         Log.e("????", "Diffie Hellman");
 
         // Receive other part from client
-        byte[] keyPart = null;
+        byte[] keyPart = new byte[192];
+        byte[] stuff = null;
         while(true){
             if(service.getInformation() != null){
-                keyPart = service.getInformation();
+                stuff = service.getInformation();
                 service.clearInformation();
                 break;
             }
         }
 
+        // Only get actual key part
+        for (int i = 0; i < keyPart.length; i++){
+            keyPart[i] = stuff[i];
+        }
+
         // Send key part
         Log.e("????", "Received Key Information");
+        Log.e("????", dh.generatePublicKey().length + "");
         service.write(dh.generatePublicKey());
 
         // Build decryption mechanism
         Cipher c = null;
         try {
             byte[] shared = dh.computeSharedKey(keyPart, 192);
-            Log.e("????", shared.length + "");
             Key key = new SecretKeySpec(shared, 0, shared.length, "AES");
+            Log.e("????", new String(shared));
             c = Cipher.getInstance("AES");
             c.init(Cipher.DECRYPT_MODE, key);
         } catch (Exception e){
             Log.e("????", e.toString());
         }
 
-        // Receive length of file from client
+        // Receive length of filename from client
         byte[] len = null;
         while(true){
             if(service.getInformation() != null){
@@ -144,6 +157,20 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             }
         }
         int length = ByteBuffer.wrap(len).getInt();
+        Log.e("????", length + "");
+
+
+        // Receive length of file from client
+        byte[] nameLen = null;
+        while(true){
+            if(service.getInformation() != null){
+                nameLen = service.getInformation();
+                service.clearInformation();
+                break;
+            }
+        }
+        int nameLength = ByteBuffer.wrap(nameLen).getInt();
+        Log.e("????", nameLength + "");
 
         // Receive name of file from client
         byte[] fileName = null;
@@ -156,26 +183,29 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         }
         String fName = null;
         try {
-            fName = new String(fileName, "US-ASCII");
+            fileName = Arrays.copyOfRange(fileName, 0, nameLength);
+            fName = new String(fileName);
+            Log.e("????", fName);
         } catch(Exception e) {
             Log.e("????", "Issue retrieving filename");
         }
 
         // Build file until file transfer is complete
         byte[] received = new byte[length];
+        int start = 0;
         while(service.getState() == BluetoothFileTransfer.STATE_CONNECTED) {
-            int start = 0;
             if (service.getInformation() != null) {
                 byte[] n = service.getInformation();
                 service.clearInformation();
-                for (int i = 0; i < 1024; i++){
+                for (int i = 0; i < PACKET_LENGTH; i++){
                     if(start + i < received.length) {
                         received[start + i] = n[i];
                     } else {
                         break;
                     }
                 }
-                start += 1024;
+                start += PACKET_LENGTH;
+                Log.e("????", start + "");
                 if (start >= received.length){
                     break;
                 }
@@ -184,22 +214,34 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
 
         // Decode chunks, then recompile file
         try {
-            received = c.doFinal(received);
+          //  received = c.doFinal(received);
         }catch (Exception e){
             Log.e("????", "Decryption Failed");
         }
 
         // Convert to File
+        FileOutputStream fOut;
+        String fPath = Environment.getExternalStoragePublicDirectory
+                (Environment.DIRECTORY_DOWNLOADS).toString() + fName;
         try {
-            File f = new File(fName);
-            FileOutputStream fOut = new FileOutputStream(f);
+
+            // Write to file
+            fOut = new FileOutputStream(new File(fPath));
             fOut.write(received);
             fOut.close();
-            Toast.makeText(getApplicationContext(), "File Received: " + f.getName(),
+            Toast.makeText(getApplicationContext(), "File Received: " + fName,
                     Toast.LENGTH_LONG).show();
+
         }  catch (Exception e){
-            Log.e("????", "File save didn't work");
+            Log.e("????", "File save didn't work: " + e.toString());
         }
+
+        // Send quick message that we completed
+        byte[] b = new byte[1];
+        b[0] = fileName[0];
+        service.write(b);
+
+        Log.e("????", "Complete");
     }
 
     public void client(View v) {
@@ -223,16 +265,22 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         // Generate key part
         Log.e("????", "Diffie Hellman");
         DiffieHellman dh = new DiffieHellman();
+        Log.e("????", dh.generatePublicKey().length + "");
         service.write(dh.generatePublicKey());
 
         // Receive other part from client
-        byte[] keyPart = null;
+        byte[] keyPart = new byte[192];
+        byte[] stuff = null;
         while(true){
             if(service.getInformation() != null){
-                keyPart = service.getInformation();
+                stuff = service.getInformation();
                 service.clearInformation();
                 break;
             }
+        }
+
+        for (int i = 0; i < keyPart.length; i++){
+            keyPart[i] = stuff[i];
         }
         Log.e("????", "Diffie Hellman Received");
 
@@ -241,13 +289,15 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         try {
             byte[] shared = dh.computeSharedKey(keyPart, 192);
             Key key = new SecretKeySpec(shared, 0, shared.length, "AES");
+            Log.e("????", new String(shared));
             c = Cipher.getInstance("AES");
             c.init(Cipher.ENCRYPT_MODE, key);
         } catch (Exception e){
             Log.e("????", "Issues with key generation");
         }
-
         Log.e("????", "Key Gen worked");
+
+
         // Convert file to byte array
         File f = new File(path);
         byte[] byteFile = new byte[(int) f.length()];
@@ -260,13 +310,15 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         }
 
         try {
-            byteFile = c.doFinal(byteFile);
+           // byteFile = c.doFinal(byteFile);
         }catch (Exception e){
             Log.e("????", "Encryption failed");
         }
 
         Log.e("????", "Encryption worked");
-        // Convert file length and sent away
+
+        // Convert file length and send away
+        Log.e("????", byteFile.length + "");
         ByteBuffer b = ByteBuffer.allocate(4);
         b.putInt(byteFile.length);
         byte[] len = b.array();
@@ -274,17 +326,31 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
 
         // Convert file path and send away
         try {
-            service.write(path.getBytes("UTF-8"));
+            byte[] fileName = name.getBytes("UTF-8");
+            Log.e("????", name);
+            b = ByteBuffer.allocate(4);
+            Log.e("????", fileName.length + "");
+            b.putInt(fileName.length);
+            len = b.array();
+
+            // Length of name
+            service.write(len);
+            Thread.sleep(50);
+
+            // Filename
+            service.write(fileName);
+            Thread.sleep(50);
+
         } catch (Exception e){
             Log.e("????", "Filename transfer issue");
         }
 
         Log.e("????", "Sending File");
-        // Send in 1024 byte chunks
+        // Send in small chunks
         int start = 0;
         while(service.getState() == BluetoothFileTransfer.STATE_CONNECTED) {
-            byte[] toSend = new byte[1024];
-            for (int i = 0; i < 1024; i++){
+            byte[] toSend = new byte[PACKET_LENGTH];
+            for (int i = 0; i < PACKET_LENGTH; i++){
                 if (start + i < byteFile.length) {
                     toSend[i] = byteFile[start + i];
                 } else {
@@ -294,7 +360,8 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
 
             // Send chunk to server
             service.write(toSend);
-            start += 1024;
+            try {Thread.sleep(10);} catch (Exception e){}
+            start += PACKET_LENGTH;
 
             // If finished, exit loop
             if (start >= byteFile.length){
@@ -306,6 +373,14 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         }
 
         Log.e("????", "Everything works on this side");
+
+        // Wait until we get confirmation that we're done
+        while(true){
+            if(service.getInformation() != null){
+                service.clearInformation();
+                break;
+            }
+        }
 
         // Close connection now we are done
         service.stop();
@@ -410,7 +485,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
                     break;
                 case MESSAGE_READ:
                     Log.e("????", "received");
-                    bytes = (byte[]) msg.obj;
                     break;
                 case MESSAGE_DEVICE_NAME:
                     break;

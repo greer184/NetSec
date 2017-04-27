@@ -317,20 +317,22 @@ public class BluetoothFileTransfer {
 
         // This is the reader, where we are always reading
         public void run() {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[512];
             int bytes = -1;
             while (state == STATE_CONNECTED) {
                 try {
 
                     // Read from the InputStream if there's something inside
                     if (inStream.available() > 0) {
+
                         bytes = inStream.read(buffer);
 
-                        Log.e("????", "read");
+                        if (bytes < 0){
+                            Log.e("????", "Problem");
+                        }
 
                         // Hold the bytes here
                         read = buffer;
-                        Log.e("????", "sent");
                     }
 
                 } catch (Exception e) {

@@ -35,6 +35,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     private List<String> myFilenames;
     private List<String> displayNames;
     private String filePath;
+    private String fileName;
 
     private BluetoothAdapter blueAdapt;
     Button bBlue;
@@ -149,6 +150,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
             Intent intent = new Intent(this, SetUpBlueToothActivity.class);
             intent.putExtra("Filename", filePath);
+            intent.putExtra("Name", fileName);
             startActivity(intent);
         }
     }
@@ -184,11 +186,12 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         String path = myFilenames.get(pos);
         Toast.makeText(getApplicationContext(), "Selected: " + selection, Toast.LENGTH_LONG).show();
 
-        // Get a content URI
+        // Get filename
         if (path.equals("None")) {
         } else {
             try {
                 filePath = path;
+                fileName = selection;
                 Log.e("????", "is working!!!");
             } catch (Exception e) {
                 Log.e("????", "not working???");
