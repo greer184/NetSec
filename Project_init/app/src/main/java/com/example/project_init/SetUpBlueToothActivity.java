@@ -32,7 +32,8 @@ import java.util.Set;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SetUpBlueToothActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class SetUpBlueToothActivity extends AppCompatActivity implements
+        AdapterView.OnItemSelectedListener {
 
     Button sender, receiver, pair;
     private BluetoothAdapter blueAdapt;
@@ -42,7 +43,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
     private String deviceToConnect;
     private BluetoothFileTransfer service;
     private byte[] bytes;
-    private int state;
 
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
@@ -58,12 +58,13 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         Intent intent = getIntent();
         path = intent.getExtras().getString("Filename");
 
-        setup();
+        blueAdapt = BluetoothAdapter.getDefaultAdapter();
+
         deviceToConnect = null;
 
         sender = (Button) findViewById(R.id.sender);
         receiver = (Button) findViewById(R.id.receiver);
-        pair = (Button) findViewById(R.id.pair);
+        pair = (Button) findViewById(R.id.find);
 
         Names = new ArrayList<String>();
         MACs = new ArrayList<String>();
@@ -73,6 +74,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         registerReceiver(myReceiver, filter);
+
     }
 
     public void onDestroy() {
@@ -87,7 +89,11 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
     public void server(View v) {
 
         // Setup as server
+        service = new BluetoothFileTransfer(this, blueHandler);
         service.start();
+
+        // Make device discoverable
+        ensureDiscoverable();
 
         // Waited until state is connected
         Log.e("????", "test");
@@ -103,49 +109,54 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         Log.e("????", "Diffie Hellman");
 
         // Receive other part from client
-        bytes = null;
+        byte[] keyPart = null;
         while(true){
-            if(bytes != null){
+            if(service.getInformation() != null){
+                keyPart = service.getInformation();
+                service.clearInformation();
                 break;
             }
         }
-        byte[] keyPart = bytes;
-        bytes = null;
 
         // Send key part
+        Log.e("????", "Received Key Information");
         service.write(dh.generatePublicKey());
 
         // Build decryption mechanism
         Cipher c = null;
         try {
-            Key key = new SecretKeySpec(dh.computeSharedKey(keyPart), "AES");
+            byte[] shared = dh.computeSharedKey(keyPart, 192);
+            Log.e("????", shared.length + "");
+            Key key = new SecretKeySpec(shared, 0, shared.length, "AES");
             c = Cipher.getInstance("AES");
             c.init(Cipher.DECRYPT_MODE, key);
         } catch (Exception e){
-            Log.e("????", "Issues with key generation");
+            Log.e("????", e.toString());
         }
 
         // Receive length of file from client
+        byte[] len = null;
         while(true){
-            if(bytes != null){
+            if(service.getInformation() != null){
+                len = service.getInformation();
+                service.clearInformation();
                 break;
             }
         }
-        byte[] len = bytes;
-        bytes = null;
         int length = ByteBuffer.wrap(len).getInt();
 
         // Receive name of file from client
+        byte[] fileName = null;
         while(true){
-            if(bytes != null){
+            if(service.getInformation() != null){
+                fileName = service.getInformation();
+                service.clearInformation();
                 break;
             }
         }
-        byte[] b = bytes;
-        bytes = null;
         String fName = null;
         try {
-            fName = new String(b, "US-ASCII");
+            fName = new String(fileName, "US-ASCII");
         } catch(Exception e) {
             Log.e("????", "Issue retrieving filename");
         }
@@ -154,8 +165,9 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         byte[] received = new byte[length];
         while(service.getState() == BluetoothFileTransfer.STATE_CONNECTED) {
             int start = 0;
-            if (bytes != null) {
-                byte[] n = bytes;
+            if (service.getInformation() != null) {
+                byte[] n = service.getInformation();
+                service.clearInformation();
                 for (int i = 0; i < 1024; i++){
                     if(start + i < received.length) {
                         received[start + i] = n[i];
@@ -163,7 +175,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
                         break;
                     }
                 }
-                bytes = null;
                 start += 1024;
                 if (start >= received.length){
                     break;
@@ -198,6 +209,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         BluetoothDevice device = blueAdapt.getRemoteDevice(deviceToConnect);
 
         // Attempt to connect
+        service = new BluetoothFileTransfer(this, blueHandler);
         service.connect(device);
         Log.e("????", "connected");
 
@@ -214,20 +226,21 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         service.write(dh.generatePublicKey());
 
         // Receive other part from client
-        bytes = null;
+        byte[] keyPart = null;
         while(true){
-            if(bytes != null){
+            if(service.getInformation() != null){
+                keyPart = service.getInformation();
+                service.clearInformation();
                 break;
             }
         }
-        byte[] keyPart = bytes;
-        bytes = null;
         Log.e("????", "Diffie Hellman Received");
 
         // Build encryption mechanism
         Cipher c = null;
         try {
-            Key key = new SecretKeySpec(dh.computeSharedKey(keyPart), "AES");
+            byte[] shared = dh.computeSharedKey(keyPart, 192);
+            Key key = new SecretKeySpec(shared, 0, shared.length, "AES");
             c = Cipher.getInstance("AES");
             c.init(Cipher.ENCRYPT_MODE, key);
         } catch (Exception e){
@@ -298,6 +311,33 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         service.stop();
     }
 
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+            Log.e("????", "wrong action");
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+
+                    // Get MAC Address and name of device
+                    Log.e("????", "checked");
+                    if (device.getName() != null) {
+                        Names.add(device.getName());
+                    } else {
+                        Names.add("Unnamed Device");
+                    }
+                    MACs.add(device.getAddress());
+                }
+
+            }
+        }
+    };
+
     private void ensureDiscoverable() {
         if (blueAdapt.getScanMode() !=
                 BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
@@ -305,11 +345,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
             startActivity(discoverableIntent);
         }
-    }
-
-    public void setup(){
-        blueAdapt = BluetoothAdapter.getDefaultAdapter();
-        service = new BluetoothFileTransfer(blueHandler);
     }
 
     public void discovery(View v){
@@ -363,40 +398,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         spinner.setOnItemSelectedListener(this);
     }
 
-    // Create a BroadcastReceiver for ACTION_FOUND.
-    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            String action = intent.getAction();
-            Log.e("????", "wrong action");
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-
-                    // Get MAC Address and name of device
-                    Log.e("????", "checked");
-                    if (device.getName() != null) {
-                        Names.add(device.getName());
-                    } else {
-                        Names.add("Unnamed Device");
-                    }
-                    MACs.add(device.getAddress());
-                }
-
-            }
-        }
-    };
-
-    public void discoverable(View v){
-
-        // Need to ask user for desired name of file
-        ensureDiscoverable();
-    }
-
-    private final Handler blueHandler = new Handler() {
+    private Handler blueHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
 
@@ -420,6 +422,11 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements Adapter
         }
     };
 
+    public void discoverable(View v){
+
+        // Need to ask user for desired name of file
+        ensureDiscoverable();
+    }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

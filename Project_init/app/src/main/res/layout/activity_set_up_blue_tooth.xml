@@ -18,15 +18,6 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Reveal Device"
-        android:id="@+id/pair"
-        android:layout_gravity="center_horizontal"
-        android:clickable="true"
-        android:onClick="discoverable" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:text="File Reciever"
         android:id="@+id/receiver"
         android:layout_gravity="center_horizontal"

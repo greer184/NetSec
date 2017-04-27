@@ -96,8 +96,8 @@ public class DiffieHellman {
         return pubKey;
     }
 
-    public byte[] computeSharedKey(byte[] pubKey){
-        byte[] sharedKey = null;
+    public byte[] computeSharedKey(byte[] pubKey, int length){
+        byte[] sharedKey = new byte[length / 8];
 
         try {
             // Convert back to big Integer
@@ -107,7 +107,10 @@ public class DiffieHellman {
             KeyFactory keyFact = KeyFactory.getInstance("DiffieHellman");
             PublicKey pKey = keyFact.generatePublic(new DHPublicKeySpec(pBI, P, G));
             keyAgreement.doPhase(pKey, true);
-            sharedKey = keyAgreement.generateSecret();
+            byte[] sharedKeyLong = keyAgreement.generateSecret();
+            for (int i = 1; i < sharedKey.length; i++){
+                sharedKey[i] = sharedKeyLong[i];
+            }
 
         } catch (Exception e) {
 

@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -25,9 +26,9 @@ public class BluetoothFileTransfer {
     private AcceptThread acceptThread;
     private ConnectThread connectThread;
     private ConnectedThread connectedThread;
-    private Handler blueHandler;
+    private Handler bHandler;
     private int state;
-    private int newState;
+    private byte[] read;
 
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
@@ -41,17 +42,23 @@ public class BluetoothFileTransfer {
     public static final int MESSAGE_TOAST = 5;
 
     // Constructor for class
-    public BluetoothFileTransfer(Handler handler) {
-        blueHandler = handler;
+    public BluetoothFileTransfer(Context context, Handler handler) {
+        bHandler = handler;
         blueAdapt = BluetoothAdapter.getDefaultAdapter();
         state = STATE_NONE;
-        newState = state;
+        read = null;
     }
 
     // Return connection state
     public synchronized int getState(){
         return state;
     }
+
+    // Return read information
+    public byte[] getInformation() { return read; }
+
+    // Clear read information
+    public void clearInformation() { read = null; }
 
     // Start the file transfer service
     public synchronized void start(){
@@ -66,6 +73,8 @@ public class BluetoothFileTransfer {
 
         // Start a thread to listen on a Bluetooth Socket server
         acceptThread = new AcceptThread();
+        acceptThread.start();
+        Log.e("????", "Server Thread created");
     }
 
     // Connect to device acting as server
@@ -91,7 +100,7 @@ public class BluetoothFileTransfer {
     }
 
     // Transition to socket connection where communication can start
-    public synchronized void connected(BluetoothSocket socket, String type){
+    public synchronized void connected(BluetoothSocket socket){
 
         // Kill any thread attempting to make connection
         if (connectThread != null) {
@@ -112,7 +121,7 @@ public class BluetoothFileTransfer {
         }
 
         Log.e("????", "Connection completed");
-        connectedThread = new ConnectedThread(socket, type);
+        connectedThread = new ConnectedThread(socket);
         connectedThread.start();
     }
 
@@ -174,6 +183,7 @@ public class BluetoothFileTransfer {
             BluetoothServerSocket temp = null;
             try {
                 temp = blueAdapt.listenUsingRfcommWithServiceRecord("Server", MY_UUID);
+                Log.e("????", "Successful Listening");
             } catch (Exception e){
 
             }
@@ -187,6 +197,7 @@ public class BluetoothFileTransfer {
             while(state != STATE_CONNECTED){
                 try{
                     socket = serverSock.accept();
+                    Log.e("????", "A socket that connects the two devices");
                 } catch(Exception e){
                     Log.e("????", "Socket's accept() method failed", e);
                     break;
@@ -200,7 +211,7 @@ public class BluetoothFileTransfer {
                             case STATE_CONNECTING:
 
                                 // Start connected thread
-                                connected(socket, "Server");
+                                connected(socket);
 
                             case STATE_NONE:
                             case STATE_CONNECTED:
@@ -263,7 +274,7 @@ public class BluetoothFileTransfer {
             }
 
             // Start the connected thread
-            connected(clientSock, "Client");
+            connected(clientSock);
 
         }
 
@@ -283,14 +294,13 @@ public class BluetoothFileTransfer {
         private final BluetoothSocket sock;
         private final InputStream inStream;
         private final OutputStream outStream;
-        private final String serviceType;
 
         // Constructor, type = sender, receiver
-        public ConnectedThread(BluetoothSocket socket, String type){
+        public ConnectedThread(BluetoothSocket socket){
             sock = socket;
-            serviceType = type;
             InputStream inTemp = null;
             OutputStream outTemp = null;
+            Log.e("????", "Connection Success");
 
             try{
                 inTemp = socket.getInputStream();
@@ -316,14 +326,10 @@ public class BluetoothFileTransfer {
                     if (inStream.available() > 0) {
                         bytes = inStream.read(buffer);
 
-                        if (bytes > -1){
-                            Log.e("????", "File Transfer Issue");
-                        }
-
                         Log.e("????", "read");
-                        // Send the obtained bytes to the UI Activity
-                        Message msg = blueHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer);
-                        msg.sendToTarget();
+
+                        // Hold the bytes here
+                        read = buffer;
                         Log.e("????", "sent");
                     }
 
