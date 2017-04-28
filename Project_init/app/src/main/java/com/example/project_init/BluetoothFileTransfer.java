@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.os.Handler;
 import android.util.Log;
 
 import java.io.InputStream;
@@ -65,7 +64,6 @@ public class BluetoothFileTransfer {
         // Start a thread to listen on a Bluetooth Socket server
         acceptThread = new AcceptThread();
         acceptThread.start();
-        Log.e("????", "Server Thread created");
     }
 
     // Connect to device acting as server
@@ -111,7 +109,6 @@ public class BluetoothFileTransfer {
             acceptThread = null;
         }
 
-        Log.e("????", "Connection completed");
         connectedThread = new ConnectedThread(socket);
         connectedThread.start();
     }
@@ -174,7 +171,6 @@ public class BluetoothFileTransfer {
             BluetoothServerSocket temp = null;
             try {
                 temp = blueAdapt.listenUsingRfcommWithServiceRecord("Server", MY_UUID);
-                Log.e("????", "Successful Listening");
             } catch (Exception e){
 
             }
@@ -188,7 +184,6 @@ public class BluetoothFileTransfer {
             while(state != STATE_CONNECTED){
                 try{
                     socket = serverSock.accept();
-                    Log.e("????", "A socket that connects the two devices");
                 } catch(Exception e){
                     Log.e("????", "Socket's accept() method failed", e);
                     break;
@@ -291,7 +286,6 @@ public class BluetoothFileTransfer {
             sock = socket;
             InputStream inTemp = null;
             OutputStream outTemp = null;
-            Log.e("????", "Connection Success");
 
             try{
                 inTemp = socket.getInputStream();
@@ -322,9 +316,6 @@ public class BluetoothFileTransfer {
                         if (inStream.available() > 0) {
 
                             // Collect bytes until nothing finished reading from buffer
-                            //bytes = inStream.read(buffer);
-                            //Log.e("????", bytes + "");
-
                             bytes = inStream.read(buffer);
                             read = Arrays.copyOfRange(buffer, 0, bytes);
                             length = read.length;
