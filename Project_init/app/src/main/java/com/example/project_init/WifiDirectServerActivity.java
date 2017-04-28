@@ -25,7 +25,7 @@ public class WifiDirectServerActivity extends Activity{
 
         private IntentFilter wifiServerReceiverIntentFilter;
 
-        private String path = "/"
+        private String path = "/";
         private File downloadTarget;
 
         private Intent serverServiceIntent;
@@ -154,7 +154,7 @@ public class WifiDirectServerActivity extends Activity{
                 startService(serverServiceIntent);
 
                 TextView serverServiceStatus = (TextView) findViewById(R.id.server_status_text);
-                serverServiceStatus.setText(R.string.server_running);
+                //serverServiceStatus.setText(R.string.server_running);
 
             }
             else
