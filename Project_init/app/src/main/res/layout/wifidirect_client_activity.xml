@@ -28,6 +28,13 @@
         android:layout_height="wrap_content"
         android:text="File Transfer Status" />
 
+    <Button
+        android:id="@+id/Get_peers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="searchForPeers"
+        android:text="Button" />
+
     <ListView
         android:id="@+id/peers_listview"
         android:layout_width="match_parent"
