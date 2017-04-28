@@ -38,7 +38,7 @@ public class WifiDirectServerService extends IntentService {
     protected void onHandleIntent(Intent intent) {
 
 
-
+        Log.d("????", "got into start server service");
         port = ((Integer) intent.getExtras().get("port")).intValue();
         saveLocation = (File) intent.getExtras().get("saveLocation");
         serverResult = (ResultReceiver) intent.getExtras().get("serverResult");
@@ -55,7 +55,7 @@ public class WifiDirectServerService extends IntentService {
         try {
 
             welcomeSocket = new ServerSocket(port);
-            Log.d("????", "got to start server service");
+            Log.d("????", "got to start server try");
 
             while(true && serviceEnabled)
             {
@@ -113,7 +113,7 @@ public class WifiDirectServerService extends IntentService {
         catch(Exception e)
         {
             signalActivity(e.getMessage());
-
+            Log.d("????", "error stuff??");
         }
 
         //Signal that operation is complete
@@ -134,8 +134,6 @@ public class WifiDirectServerService extends IntentService {
     {
         serviceEnabled = false;
 
-        //Signal that the service was stopped
-        //serverResult.send(port, new Bundle());
 
         stopSelf();
     }
