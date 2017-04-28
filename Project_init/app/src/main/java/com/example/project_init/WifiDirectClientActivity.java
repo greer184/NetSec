@@ -216,7 +216,7 @@ public class WifiDirectClientActivity extends Activity {
                 clientServiceIntent = new Intent(this, WifiDirectClientService.class);
                 clientServiceIntent.putExtra("fileToSend", fileToSend);
                 clientServiceIntent.putExtra("port", new Integer(port));
-                //clientServiceIntent.putExtra("targetDevice", targetDevice);
+                clientServiceIntent.putExtra("targetDevice", targetDevice);
                 clientServiceIntent.putExtra("wifiInfo", wifiInfo);
                 clientServiceIntent.putExtra("clientResult", new ResultReceiver(null) {
                     @Override
