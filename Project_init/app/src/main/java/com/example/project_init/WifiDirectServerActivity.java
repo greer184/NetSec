@@ -25,7 +25,7 @@ public class WifiDirectServerActivity extends Activity{
 
         private IntentFilter wifiServerReceiverIntentFilter;
 
-        private String path;
+        private String path = "/"
         private File downloadTarget;
 
         private Intent serverServiceIntent;
@@ -39,8 +39,8 @@ public class WifiDirectServerActivity extends Activity{
             super.onCreate(savedInstanceState);
             setContentView(R.layout.wifidirect_server_activity);
 
-            Intent intent  = getIntent();
-            path = intent.getExtras().getString("Filename");
+            //Intent intent  = getIntent();
+            //path = intent.getExtras().getString("Filename");
 
 
             wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
@@ -71,11 +71,9 @@ public class WifiDirectServerActivity extends Activity{
         wifiManager.createGroup(wifichannel,  new WifiP2pManager.ActionListener()  {
     	    public void onSuccess() {
     	    	setServerFileTransferStatus("Wifi-Direct connection creation successful");
-    	    	//Group creation successful
     	    }
     	    public void onFailure(int reason) {
     	    	setServerFileTransferStatus("Wifi-Direct connection creation failed");
-    	    	//Group creation failed
     	    }
     	});
         }
@@ -84,7 +82,7 @@ public class WifiDirectServerActivity extends Activity{
         protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
             if (resultCode == Activity.RESULT_OK && requestCode == fileRequestID) {
-                //Fetch result
+
                 File targetDir = (File) data.getExtras().get("file");
 
                 if(targetDir.isDirectory())
@@ -92,8 +90,7 @@ public class WifiDirectServerActivity extends Activity{
                     if(targetDir.canWrite())
                     {
                         downloadTarget = targetDir;
-                       // TextView filePath = (TextView) findViewById(R.id.server_file_path);
-                      //  filePath.setText(targetDir.getPath());
+
                         setServerFileTransferStatus("Download directory set to " + targetDir.getName());
 
                     }
@@ -112,10 +109,8 @@ public class WifiDirectServerActivity extends Activity{
 
         public void startServer(View view) {
 
-            //If server is already listening on port or transfering data, do not attempt to start server service
             if(!serverThreadActive)
             {
-                //Create new thread, open socket, wait for connection, and transfer file
 
                 serverServiceIntent = new Intent(this, WifiDirectServerService.class);
                 serverServiceIntent.putExtra("saveLocation", downloadTarget);
@@ -127,7 +122,7 @@ public class WifiDirectServerActivity extends Activity{
                         if(resultCode == port )
                         {
                             if (resultData == null) {
-                                //Server service has shut down. Download may or may not have completed properly.
+
                                 serverThreadActive = false;
 
 
@@ -158,9 +153,8 @@ public class WifiDirectServerActivity extends Activity{
                 serverThreadActive = true;
                 startService(serverServiceIntent);
 
-                //Set status to running
                 TextView serverServiceStatus = (TextView) findViewById(R.id.server_status_text);
-                //serverServiceStatus.setText(R.string.server_running);
+                serverServiceStatus.setText(R.string.server_running);
 
             }
             else
@@ -204,7 +198,7 @@ public class WifiDirectServerActivity extends Activity{
 
             stopServer(null);
 
-            //Unregister broadcast receiver
+
             try {
                 unregisterReceiver(wifiServerReceiver);
             } catch (IllegalArgumentException e) {

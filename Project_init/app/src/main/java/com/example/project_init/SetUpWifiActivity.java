@@ -25,10 +25,10 @@ public class SetUpWifiActivity extends AppCompatActivity {
     }
 
     public void receiveFiles(View view){
-        Intent pastIntent = getIntent();
-        path = pastIntent.getExtras().getString("Filename");
+        //Intent pastIntent = getIntent();
+        //path = pastIntent.getExtras().getString("Filename");
         Intent intent = new Intent(this, WifiDirectServerActivity.class);
-        intent.putExtra("Filename", path);
+        //intent.putExtra("Filename", path);
         startActivity(intent);
 
     }
