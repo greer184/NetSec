@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.ResultReceiver;
+import android.util.Log;
 
 public class WifiDirectClientService extends IntentService {
 
@@ -40,6 +41,7 @@ public class WifiDirectClientService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
 
+        Log.d("????", "client send file service start");
         port = ((Integer) intent.getExtras().get("port")).intValue();
         fileToSend = (File) intent.getExtras().get("fileToSend");
         clientResult = (ResultReceiver) intent.getExtras().get("clientResult");
@@ -55,9 +57,9 @@ public class WifiDirectClientService extends IntentService {
 
             Socket clientSocket = null;
             OutputStream os = null;
-
+            Log.d("????", "send file start before try");
             try {
-
+                Log.d("????", "send file start in try");
                 clientSocket = new Socket(targetIP, port);
                 os = clientSocket.getOutputStream();
                 PrintWriter pw = new PrintWriter(os);
