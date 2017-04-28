@@ -29,6 +29,7 @@ public class BluetoothFileTransfer {
     private Handler bHandler;
     private int state;
     private byte[] read;
+    private int length;
 
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
@@ -58,7 +59,7 @@ public class BluetoothFileTransfer {
     public byte[] getInformation() { return read; }
 
     // Clear read information
-    public void clearInformation() { read = null; }
+    public int clearInformation() { read = null; return length;}
 
     // Start the file transfer service
     public synchronized void start(){
@@ -317,7 +318,8 @@ public class BluetoothFileTransfer {
 
         // This is the reader, where we are always reading
         public void run() {
-            byte[] buffer = new byte[512];
+            length = 4096;
+            byte[] buffer = new byte[length];
             int bytes = -1;
             while (state == STATE_CONNECTED) {
                 try {
@@ -325,14 +327,24 @@ public class BluetoothFileTransfer {
                     // Read from the InputStream if there's something inside
                     if (inStream.available() > 0) {
 
-                        bytes = inStream.read(buffer);
+                        // Collect bytes until nothing finished reading from buffer
+                        //bytes = inStream.read(buffer);
+                        //Log.e("????", bytes + "");
 
-                        if (bytes < 0){
-                            Log.e("????", "Problem");
-                        }
+                        int pos = 0;
+                        do {
+                            bytes = inStream.read(buffer, pos, length-pos);
 
-                        // Hold the bytes here
+                            // check for end of file or error
+                            if (bytes == -1) {
+                                break;
+                            } else {
+                                pos += bytes;
+                            }
+                        } while (pos < length);
+
                         read = buffer;
+                        length = bytes;
                     }
 
                 } catch (Exception e) {

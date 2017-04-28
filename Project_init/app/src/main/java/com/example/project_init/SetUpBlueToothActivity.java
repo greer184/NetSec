@@ -53,7 +53,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
 
-    public static final int PACKET_LENGTH = 512;
+    public static final int PACKET_LENGTH = 4096;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,15 +196,15 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         while(service.getState() == BluetoothFileTransfer.STATE_CONNECTED) {
             if (service.getInformation() != null) {
                 byte[] n = service.getInformation();
-                service.clearInformation();
-                for (int i = 0; i < PACKET_LENGTH; i++){
+                int actual = service.clearInformation();
+                for (int i = 0; i < actual; i++){
                     if(start + i < received.length) {
                         received[start + i] = n[i];
                     } else {
                         break;
                     }
                 }
-                start += PACKET_LENGTH;
+                start += actual;
                 Log.e("????", start + "");
                 if (start >= received.length){
                     break;
@@ -360,7 +360,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
 
             // Send chunk to server
             service.write(toSend);
-            try {Thread.sleep(10);} catch (Exception e){}
+            try {Thread.sleep(50);} catch (Exception e){}
             start += PACKET_LENGTH;
 
             // If finished, exit loop
