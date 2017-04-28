@@ -39,10 +39,6 @@ public class WifiDirectServerActivity extends Activity{
             super.onCreate(savedInstanceState);
             setContentView(R.layout.wifidirect_server_activity);
 
-            //Intent intent  = getIntent();
-            //path = intent.getExtras().getString("Filename");
-
-
             wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
             wifichannel = wifiManager.initialize(this, getMainLooper(), null);
             wifiServerReceiver = new WifiDirectBroadcastReceiverServer(wifiManager, wifichannel, this);
@@ -173,14 +169,6 @@ public class WifiDirectServerActivity extends Activity{
             }
 
         }
-
-        public void startClientActivity(View view) {
-
-            stopServer(null);
-            Intent clientStartIntent = new Intent(this, WifiDirectClientActivity.class);
-            startActivity(clientStartIntent);
-        }
-
 
         @Override
         protected void onResume() {
