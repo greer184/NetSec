@@ -33,7 +33,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="searchForPeers"
-        android:text="Button" />
+        android:text="Get Peers" />
+
+    <Button
+        android:id="@+id/send_file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="sendFile"
+        android:text="Send File" />
 
     <ListView
         android:id="@+id/peers_listview"
