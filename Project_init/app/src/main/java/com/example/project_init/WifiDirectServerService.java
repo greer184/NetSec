@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.ResultReceiver;
+import android.util.Log;
 import android.view.View;
 
 public class WifiDirectServerService extends IntentService {
@@ -43,7 +44,7 @@ public class WifiDirectServerService extends IntentService {
         serverResult = (ResultReceiver) intent.getExtras().get("serverResult");
 
 
-        //signalActivity("Starting to download");
+        signalActivity("Starting to download");
 
 
         String fileName = "";
@@ -54,27 +55,23 @@ public class WifiDirectServerService extends IntentService {
         try {
 
             welcomeSocket = new ServerSocket(port);
+            Log.d("????", "got to start server service");
 
             while(true && serviceEnabled)
             {
 
-                //Listen for incoming connections on specified port
-                //Block thread until someone connects
                 socket = welcomeSocket.accept();
 
-                //signalActivity("TCP Connection Established: " + socket.toString() + " Starting file transfer");
+                signalActivity("TCP Connection Established: " + socket.toString() + " Starting file transfer");
 
                 InputStream is = socket.getInputStream();
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr);
-
+                Log.d("????", "writing file??");
                 OutputStream os = socket.getOutputStream();
                 PrintWriter pw = new PrintWriter(os);
 
-
                 String inputData = "";
-
-
 
                 signalActivity("About to start handshake");
                 //Client-Server handshake
@@ -105,7 +102,6 @@ public class WifiDirectServerService extends IntentService {
 
 
                 signalActivity("File Transfer Complete, saved as: " + savedAs);
-                //Start writing to file
 
             }
 

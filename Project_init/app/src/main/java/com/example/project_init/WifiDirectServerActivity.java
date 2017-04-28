@@ -111,7 +111,7 @@ public class WifiDirectServerActivity extends Activity{
 
             if(!serverThreadActive)
             {
-
+                Log.d("????", "got to start server");
                 serverServiceIntent = new Intent(this, WifiDirectServerService.class);
                 serverServiceIntent.putExtra("saveLocation", downloadTarget);
                 serverServiceIntent.putExtra("port", new Integer(port));
