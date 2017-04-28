@@ -53,3 +53,27 @@ Recieve file:
 04-28 09:00:33.585 19757-19757/com.example.project_init D/????: Bytes: 9900/11584
 04-28 09:00:33.589 19757-19757/com.example.project_init D/????: Bytes: 11584/11584
 04-28 09:00:33.679 19757-19757/com.example.project_init D/????: Complete
+
+Wifi Direct Debugging Scripts:
+
+Client:
+Get permissions and go into wifi direct and select file:
+04-28 12:37:07.795 28468-28468/com.example.project_init D/????: Coarse permission granted
+04-28 12:37:07.795 28468-28468/com.example.project_init D/????: Write permission granted
+04-28 12:37:07.795 28468-28468/com.example.project_init D/????: Read permission granted
+04-28 12:37:11.274 28468-28468/com.example.project_init D/????: File Selected
+After finding peers, begin sending file
+04-28 12:37:56.625 28468-28468/com.example.project_init D/????: send file start
+04-28 12:37:56.625 28468-28468/com.example.project_init D/????: sending pre service start
+04-28 12:37:56.661 28468-31900/com.example.project_init D/????: client send file service start
+Unable to send file due to "group leader" error
+
+Server:
+Get permissions and go into wifi direct:
+08-14 09:11:28.639 12094-12094/com.example.project_init D/????: Coarse permission granted
+08-14 09:11:28.640 12094-12094/com.example.project_init D/????: Write permission granted
+08-14 09:11:28.642 12094-12094/com.example.project_init D/????: Read permission granted
+Press server button:
+08-14 09:34:07.578 12094-12094/com.example.project_init D/????: got to start server
+08-14 09:34:07.584 12094-27973/com.example.project_init D/????: got into start server service
+Unable to recieve file due to "group leader" error
