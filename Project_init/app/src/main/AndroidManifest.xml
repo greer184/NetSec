@@ -64,6 +64,9 @@
                 android:value=".MainActivity"
                 />
         </activity>
+        <service android:name=".WifiDirectServerService"></service>
+        <service android:name=".WifiDirectClientService"></service>
+
 
     </application>
 
