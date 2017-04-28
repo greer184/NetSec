@@ -151,7 +151,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             }
         }
         int length = ByteBuffer.wrap(len).getInt();
-        Log.e("????", "File" + length + "");
+        Log.e("????", "File: " + length + "");
 
 
         // Receive length of file from client
@@ -198,10 +198,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
                     }
                 }
                 start += actual;
-                Log.e("????", start + "");
-
-                // Write message back saying we received message in full
-                service.write(fileName);
+                Log.e("????", start + "/" + received.length);
 
                 if (start >= received.length){
                     break;
@@ -220,7 +217,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         // Convert to File
         FileOutputStream fOut;
         String fPath = Environment.getExternalStoragePublicDirectory
-                (Environment.DIRECTORY_DOWNLOADS).toString() + fName;
+                (Environment.DIRECTORY_DOWNLOADS).toString() + "/" + fName;
         try {
 
             // Write to file
@@ -234,11 +231,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             Log.e("????", "File save didn't work: " + e.toString());
             service.stop();
         }
-
-        // Send quick message that we completed
-        byte[] b = new byte[1];
-        b[0] = fileName[0];
-        service.write(b);
 
         Log.e("????", "Complete");
     }
@@ -346,51 +338,15 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             service.stop();
         }
 
+        // Send file to server
         Log.e("????", "Sending File");
-        // Send in small chunks
-        int start = 0;
-        while(service.getState() == BluetoothFileTransfer.STATE_CONNECTED) {
-            byte[] toSend = new byte[PACKET_LENGTH];
-            for (int i = 0; i < PACKET_LENGTH; i++){
-                if (start + i < byteFile.length) {
-                    toSend[i] = byteFile[start + i];
-                } else {
-                    break;
-                }
-            }
-
-            // Send chunk to server
-            service.write(toSend);
-            start += PACKET_LENGTH;
-
-            // Wait for confirmation of successful transmission
-            while(true){
-                if(service.getInformation() != null){
-                    service.clearInformation();
-                    break;
-                }
-            }
-
-            // If finished, exit loop
-            if (start >= byteFile.length){
-                Toast.makeText(getApplicationContext(), "File Transfer Complete",
-                        Toast.LENGTH_LONG).show();
-                break;
-            }
-
-        }
+        service.write(byteFile);
 
         Log.e("????", "Everything works on this side");
 
-        // Wait until we get confirmation that we're done
-        while(true){
-            if(service.getInformation() != null){
-                service.clearInformation();
-                break;
-            }
-        }
-
         // Close connection now we are done
+        Toast.makeText(getApplicationContext(), "File Transfer Complete",
+                Toast.LENGTH_LONG).show();
         service.stop();
     }
 
