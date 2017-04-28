@@ -7,8 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -44,14 +42,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
     private List<String> MACs;
     private String deviceToConnect;
     private BluetoothFileTransfer service;
-
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
-
-    public static final int PACKET_LENGTH = 4096;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,24 +83,23 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
     public void server(View v) {
 
         // Setup as server
-        service = new BluetoothFileTransfer(this, blueHandler);
+        service = new BluetoothFileTransfer();
         service.start();
 
         // Make device discoverable
         ensureDiscoverable();
 
         // Waited until state is connected
-        Log.e("????", "test");
         while(true){
             if(service.getState() == BluetoothFileTransfer.STATE_CONNECTED){
+                Log.d("????", "Connection Completed");
                 break;
             }
         }
 
         // Generate key part
-        Log.e("????", "pass pass");
         DiffieHellman dh = new DiffieHellman();
-        Log.e("????", "Diffie Hellman");
+        Log.d("????", "Diffie Hellman Started");
 
         // Receive other part from client
         byte[] keyPart = null;
@@ -123,10 +112,8 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         }
 
         // Send key part
-        Log.e("????", "pubB: " + new String(keyPart));
-        Log.e("????", "Received Key Information");
+        Log.d("????", "Received KeyPart Information");
         byte[] keyz = dh.generatePublicKey();
-        Log.e("????", "pubA: " + new String(keyz));
         service.write(keyz);
 
         // Build decryption mechanism
@@ -134,7 +121,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         try {
             byte[] shared = dh.computeSharedKey(keyPart, 192);
             Key key = new SecretKeySpec(shared, 0, shared.length, "AES");
-            Log.e("????", new String(shared));
             c = Cipher.getInstance("AES");
             c.init(Cipher.DECRYPT_MODE, key);
         } catch (Exception e){
@@ -151,7 +137,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             }
         }
         int length = ByteBuffer.wrap(len).getInt();
-        Log.e("????", "File: " + length + "");
+        Log.d("????", "File Length: " + length + "");
 
 
         // Receive length of file from client
@@ -164,7 +150,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             }
         }
         int nameLength = ByteBuffer.wrap(nameLen).getInt();
-        Log.e("????", nameLength + "");
+        Log.d("????", "Filename length: " + nameLength + "");
 
         // Receive name of file from client
         byte[] fileName = null;
@@ -179,7 +165,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         try {
             fileName = Arrays.copyOfRange(fileName, 0, nameLength);
             fName = new String(fileName);
-            Log.e("????", fName);
+            Log.d("????", "File: " + fName);
         } catch(Exception e) {
             Log.e("????", "Issue retrieving filename");
             service.stop();
@@ -198,7 +184,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
                     }
                 }
                 start += actual;
-                Log.e("????", start + "/" + received.length);
+                Log.d("????", "Bytes: " + start + "/" + received.length);
 
                 if (start >= received.length){
                     break;
@@ -206,7 +192,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             }
         }
 
-        // Decode chunks, then recompile file
+        // Decode compiled file
         try {
             received = c.doFinal(received);
         }catch (Exception e){
@@ -232,32 +218,31 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             service.stop();
         }
 
-        Log.e("????", "Complete");
+        Log.d("????", "Complete");
     }
 
     public void client(View v) {
 
         // Get the BluetoothDevice object
-        Log.e("????", "ready to connect");
+        Log.d("????", "Ready to connect");
         BluetoothDevice device = blueAdapt.getRemoteDevice(deviceToConnect);
 
         // Attempt to connect
-        service = new BluetoothFileTransfer(this, blueHandler);
+        service = new BluetoothFileTransfer();
         service.connect(device);
-        Log.e("????", "connected");
 
         // Wait for connection
         while(true){
             if(service.getState() == BluetoothFileTransfer.STATE_CONNECTED){
+                Log.d("????", "Connection Completed");
                 break;
             }
         }
 
         // Generate key part
-        Log.e("????", "Diffie Hellman");
+        Log.d("????", "Diffie Hellman Started");
         DiffieHellman dh = new DiffieHellman();
         byte[] keyz = dh.generatePublicKey();
-        Log.e("????", "pubB: " + new String(keyz));
         service.write(keyz);
 
         // Receive other part from client
@@ -270,22 +255,20 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             }
         }
 
-        Log.e("????", "pubA: " + new String(keyPart));
-        Log.e("????", "Diffie Hellman Received");
+        Log.d("????", "Diffie Hellman KeyPart Received");
 
         // Build encryption mechanism
         Cipher c = null;
         try {
             byte[] shared = dh.computeSharedKey(keyPart, 192);
             Key key = new SecretKeySpec(shared, 0, shared.length, "AES");
-            Log.e("????", new String(shared));
             c = Cipher.getInstance("AES");
             c.init(Cipher.ENCRYPT_MODE, key);
         } catch (Exception e){
             Log.e("????", "Issues with key generation");
             service.stop();
         }
-        Log.e("????", "Key Gen worked");
+        Log.d("????", "Symmetric Key Generated");
 
 
         // Convert file to byte array
@@ -307,10 +290,10 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
             service.stop();
         }
 
-        Log.e("????", "Encryption worked");
+        Log.d("????", "Encryption worked");
 
         // Convert file length and send away
-        Log.e("????", byteFile.length + "");
+        Log.d("????", "File length: " + byteFile.length + "");
         ByteBuffer b = ByteBuffer.allocate(4);
         b.putInt(byteFile.length);
         byte[] len = b.array();
@@ -319,9 +302,9 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         // Convert file path and send away
         try {
             byte[] fileName = name.getBytes("UTF-8");
-            Log.e("????", name);
+            Log.d("????", "File: " + name);
             b = ByteBuffer.allocate(4);
-            Log.e("????", "File: " + fileName.length + "");
+            Log.d("????", "Filename Length: " + fileName.length + "");
             b.putInt(fileName.length);
             len = b.array();
 
@@ -339,10 +322,10 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         }
 
         // Send file to server
-        Log.e("????", "Sending File");
+        Log.d("????", "Sending File");
         service.write(byteFile);
 
-        Log.e("????", "Everything works on this side");
+        Log.d("????", "Everything works on this side");
 
         // Close connection now we are done
         Toast.makeText(getApplicationContext(), "File Transfer Complete",
@@ -357,14 +340,13 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         public void onReceive(Context context, Intent intent) {
 
             String action = intent.getAction();
-            Log.e("????", "wrong action");
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
 
                     // Get MAC Address and name of device
-                    Log.e("????", "checked");
+                    Log.d("????", "Found Device");
                     if (device.getName() != null) {
                         Names.add(device.getName());
                     } else {
@@ -415,7 +397,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         }
 
         // Start Discovery for other devices
-        Log.e("????", "reached discovery");
+        Log.d("????", "Reached discovery");
 
         // Sleep for 12 Seconds
         try {
@@ -426,7 +408,7 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
 
         // Discovery is over
         blueAdapt.cancelDiscovery();
-        Log.e("????", "ended discovery");
+        Log.d("????", "Ended discovery");
 
         // Create a spinner to select MAC Address
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -436,29 +418,6 @@ public class SetUpBlueToothActivity extends AppCompatActivity implements
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
     }
-
-    private Handler blueHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-
-            Log.e("????", "Got Message");
-            switch (msg.what) {
-                case MESSAGE_STATE_CHANGE:
-                    break;
-                case MESSAGE_WRITE:
-                    break;
-                case MESSAGE_READ:
-                    Log.e("????", "received");
-                    break;
-                case MESSAGE_DEVICE_NAME:
-                    break;
-                case MESSAGE_TOAST:
-                    Toast.makeText(getApplicationContext(), msg.getData().getString("Toast"),
-                            Toast.LENGTH_SHORT).show();
-                    break;
-            }
-        }
-    };
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

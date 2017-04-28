@@ -1,0 +1,55 @@
+Bluetooth Debugging Scripts:
+Client
+Sender obtains file permissions (automatically) and selects a file:
+08-14 05:52:50.742 3960-3960/com.example.project_init D/????: Coarse permission granted
+08-14 05:52:50.743 3960-3960/com.example.project_init D/????: Write permission granted
+08-14 05:52:50.744 3960-3960/com.example.project_init D/????: Read permission granted
+08-14 05:52:57.448 3960-3960/com.example.project_init D/????: File Selected
+Sender performs Bluetooth discovery:
+08-14 05:53:42.184 3960-3960/com.example.project_init D/????: Reached discovery
+08-14 05:53:54.192 3960-3960/com.example.project_init D/????: Ended discovery
+08-14 05:53:54.214 3960-3960/com.example.project_init D/????: Found Device
+08-14 05:53:54.227 3960-3960/com.example.project_init D/????: Found Device
+Sender hits send and connection is built:
+08-14 05:53:59.453 3960-3960/com.example.project_init D/????: Ready to connect
+08-14 05:54:07.510 3960-3960/com.example.project_init D/????: Connection Completed
+Diffie Hellman Key Exchange:
+08-14 05:54:07.510 3960-3960/com.example.project_init D/????: Diffie Hellman Started
+08-14 05:54:08.118 3960-3960/com.example.project_init D/????: Diffie Hellman KeyPart Received
+08-14 05:54:08.127 3960-3960/com.example.project_init D/????: Symmetric Key Generated
+Preparing file and senting receiver necessary information:
+08-14 05:54:08.130 3960-3960/com.example.project_init D/????: Encryption worked
+08-14 05:54:08.130 3960-3960/com.example.project_init D/????: File length: 11584
+08-14 05:54:08.131 3960-3960/com.example.project_init D/????: File: 2568-2.pdf
+08-14 05:54:08.131 3960-3960/com.example.project_init D/????: Filename Length: 10
+Sending the file, then finishing:
+08-14 05:54:08.231 3960-3960/com.example.project_init D/????: Sending File
+08-14 05:54:08.231 3960-3960/com.example.project_init D/????: Everything works on this side
+
+Server
+Reciever obtains file permissions (automatically) and but goes straight to Bluetooth:
+4-28 09:00:23.550 19757-19757/com.example.project_init D/????: Coarse permission granted
+04-28 09:00:23.551 19757-19757/com.example.project_init D/????: Write permission granted
+04-28 09:00:23.551 19757-19757/com.example.project_init D/????: Read permission granted
+Reciever presses recieve button, becomes discoverable, waits for connection:
+04-28 09:00:33.268 19757-19757/com.example.project_init D/????: Connection Completed
+Diffie Hellman Key Exchange:
+04-28 09:00:33.269 19757-19757/com.example.project_init D/????: Diffie Hellman Started
+04-28 09:00:33.280 19757-19757/com.example.project_init D/????: Received KeyPart Information
+Recieve information from client:
+04-28 09:00:33.441 19757-19757/com.example.project_init D/????: File Length: 11584
+04-28 09:00:33.444 19757-19757/com.example.project_init D/????: Filename length: 10
+04-28 09:00:33.488 19757-19757/com.example.project_init D/????: File: 2568-2.pdf
+Recieve file:
+04-28 09:00:33.543 19757-19757/com.example.project_init D/????: Bytes: 990/11584
+04-28 09:00:33.546 19757-19757/com.example.project_init D/????: Bytes: 1980/11584
+04-28 09:00:33.549 19757-19757/com.example.project_init D/????: Bytes: 2970/11584
+04-28 09:00:33.556 19757-19757/com.example.project_init D/????: Bytes: 3960/11584
+04-28 09:00:33.562 19757-19757/com.example.project_init D/????: Bytes: 4950/11584
+04-28 09:00:33.564 19757-19757/com.example.project_init D/????: Bytes: 5940/11584
+04-28 09:00:33.568 19757-19757/com.example.project_init D/????: Bytes: 6930/11584
+04-28 09:00:33.573 19757-19757/com.example.project_init D/????: Bytes: 7920/11584
+04-28 09:00:33.579 19757-19757/com.example.project_init D/????: Bytes: 8910/11584
+04-28 09:00:33.585 19757-19757/com.example.project_init D/????: Bytes: 9900/11584
+04-28 09:00:33.589 19757-19757/com.example.project_init D/????: Bytes: 11584/11584
+04-28 09:00:33.679 19757-19757/com.example.project_init D/????: Complete

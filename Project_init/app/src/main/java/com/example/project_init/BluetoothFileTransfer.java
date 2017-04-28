@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
@@ -25,7 +24,6 @@ public class BluetoothFileTransfer {
     private AcceptThread acceptThread;
     private ConnectThread connectThread;
     private ConnectedThread connectedThread;
-    private Handler bHandler;
     private int state;
     private byte[] read;
     private int length;
@@ -35,15 +33,8 @@ public class BluetoothFileTransfer {
     public static final int STATE_CONNECTING = 2;
     public static final int STATE_CONNECTED = 3;
 
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
-
     // Constructor for class
-    public BluetoothFileTransfer(Context context, Handler handler) {
-        bHandler = handler;
+    public BluetoothFileTransfer() {
         blueAdapt = BluetoothAdapter.getDefaultAdapter();
         state = STATE_NONE;
         read = null;
@@ -141,17 +132,17 @@ public class BluetoothFileTransfer {
     // The connection failed
     private void connectionFailed() {
 
-        // Start the service over to restart listening mode
+        // Start the service over
         state = STATE_NONE;
-        BluetoothFileTransfer.this.start();
+        BluetoothFileTransfer.this.stop();
     }
 
     // The connection was lost
     private void connectionLost(){
 
-        // Start the service over to restart listening mode
+        // Start the service over
         state = STATE_NONE;
-        BluetoothFileTransfer.this.start();
+        BluetoothFileTransfer.this.stop();
     }
 
     // Stop the connection, kill everything

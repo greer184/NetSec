@@ -61,7 +61,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                         ACCESS_PERMISSION);
             }
         } else {
-            Log.e("????", "coarse granted");
+            Log.d("????", "Coarse permission granted");
         }
 
         // Permission for writing from external storage(for Marshmallow and up)
@@ -79,7 +79,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                         WRITE_PERMISSION);
             }
         } else {
-            Log.e("????", "write granted");
+            Log.d("????", "Write permission granted");
         }
 
 
@@ -98,7 +98,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                         READ_PERMISSION);
             }
         } else {
-            Log.e("????", "read granted");
+            Log.d("????", "Read permission granted");
         }
 
         // Get files from directory
@@ -106,7 +106,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString());
         myFiles = storage.listFiles();
 
-        Log.e("????", storage.canRead() + "/" + storage.getPath());
         myFilenames = new ArrayList<String>();
         displayNames = new ArrayList<String>();
         myFilenames.add("None");
@@ -192,9 +191,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
             try {
                 filePath = path;
                 fileName = selection;
-                Log.e("????", "is working!!!");
+                Log.d("????", "File Selected");
             } catch (Exception e) {
-                Log.e("????", "not working???");
+                Log.e("????", "Issue with Selection");
             }
         }
     }
