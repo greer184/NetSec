@@ -191,7 +191,7 @@ public class WifiDirectClientActivity extends Activity {
 
     }
     public void sendFile(View view) {
-
+        Log.d("????", "send file start");
         //Only try to send file if there isn't already a transfer active
         if(!transferActive)
         {
@@ -213,6 +213,7 @@ public class WifiDirectClientActivity extends Activity {
             else
             {
                 //Launch client service
+                Log.d("????", "sending pre service start");
                 clientServiceIntent = new Intent(this, WifiDirectClientService.class);
                 clientServiceIntent.putExtra("fileToSend", fileToSend);
                 clientServiceIntent.putExtra("port", new Integer(port));
