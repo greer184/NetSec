@@ -6,12 +6,11 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.UUID;
 
 // Class that creates connections, performs transfers, etc.
@@ -321,36 +320,30 @@ public class BluetoothFileTransfer {
             length = 4096;
             byte[] buffer = new byte[length];
             int bytes = -1;
+            read = null;
             while (state == STATE_CONNECTED) {
-                try {
 
-                    // Read from the InputStream if there's something inside
-                    if (inStream.available() > 0) {
+                // only read if buffer is empty
+                if (read == null) {
+                    try {
 
-                        // Collect bytes until nothing finished reading from buffer
-                        //bytes = inStream.read(buffer);
-                        //Log.e("????", bytes + "");
+                        // Read from the InputStream if there's something inside
+                        if (inStream.available() > 0) {
 
-                        int pos = 0;
-                        do {
-                            bytes = inStream.read(buffer, pos, length-pos);
+                            // Collect bytes until nothing finished reading from buffer
+                            //bytes = inStream.read(buffer);
+                            //Log.e("????", bytes + "");
 
-                            // check for end of file or error
-                            if (bytes == -1) {
-                                break;
-                            } else {
-                                pos += bytes;
-                            }
-                        } while (pos < length);
+                            bytes = inStream.read(buffer);
+                            read = Arrays.copyOfRange(buffer, 0, bytes);
+                            length = read.length;
+                        }
 
-                        read = buffer;
-                        length = bytes;
+
+                    } catch (Exception e) {
+                        connectionLost();
                     }
-
-                } catch (Exception e) {
-                    connectionLost();
                 }
-
             }
         }
 
@@ -359,7 +352,7 @@ public class BluetoothFileTransfer {
             try {
                 outStream.write(buffer);
             } catch (Exception e) {
-
+                connectionLost();
             }
         }
 
