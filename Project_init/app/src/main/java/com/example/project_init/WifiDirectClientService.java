@@ -43,13 +43,13 @@ public class WifiDirectClientService extends IntentService {
         port = ((Integer) intent.getExtras().get("port")).intValue();
         fileToSend = (File) intent.getExtras().get("fileToSend");
         clientResult = (ResultReceiver) intent.getExtras().get("clientResult");
-        //targetDevice = (WifiP2pDevice) intent.getExtras().get("targetDevice");
+        targetDevice = (WifiP2pDevice) intent.getExtras().get("targetDevice");
         wifiInfo = (WifiP2pInfo) intent.getExtras().get("wifiInfo");
 
         if(!wifiInfo.isGroupOwner)
         {
             //targetDevice.
-            //signalActivity(wifiInfo.isGroupOwner + " Transfering file " + fileToSend.getName() + " to " + wifiInfo.groupOwnerAddress.toString()  + " on TCP Port: " + port );
+            signalActivity(wifiInfo.isGroupOwner + " Transfering file " + fileToSend.getName() + " to " + wifiInfo.groupOwnerAddress.toString()  + " on TCP Port: " + port );
 
             InetAddress targetIP = wifiInfo.groupOwnerAddress;
 
